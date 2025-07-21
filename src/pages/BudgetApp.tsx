@@ -43,6 +43,8 @@ const BudgetApp: React.FC = () => {
   const [type, setType] = useState<'income' | 'expense'>('income');
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
+  const [transactionYear, setTransactionYear] = useState<number>(new Date().getFullYear());
+  const [transactionMonth, setTransactionMonth] = useState<number>(new Date().getMonth() + 1);
 
   const incomeCategories = ['Salary', 'Freelance', 'Investment', 'Other Income'];
   const expenseCategories = ['Food', 'Transport', 'Entertainment', 'Bills', 'Shopping', 'Other'];
@@ -50,13 +52,16 @@ const BudgetApp: React.FC = () => {
   const addTransaction = () => {
     if (!amount || !description || !category) return;
 
+    // Create date with selected year and month (first day of the month)
+    const transactionDate = new Date(transactionYear, transactionMonth - 1, 1);
+
     const newTransaction: Transaction = {
       id: Date.now().toString(),
       type,
       amount: parseFloat(amount),
       description,
       category,
-      date: new Date(),
+      date: transactionDate,
     };
 
     setTransactions([newTransaction, ...transactions]);
@@ -194,6 +199,8 @@ const BudgetApp: React.FC = () => {
               onChange={(e) => setAmount(e.target.value)}
               inputProps={{ min: 0, step: 0.01 }}
             />
+          </Stack>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
               <Select
@@ -214,6 +221,36 @@ const BudgetApp: React.FC = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+          </Stack>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            <FormControl fullWidth>
+              <InputLabel>Year</InputLabel>
+              <Select
+                value={transactionYear}
+                label="Year"
+                onChange={(e) => setTransactionYear(Number(e.target.value))}
+              >
+                {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map((year) => (
+                  <MenuItem key={year} value={year}>
+                    {year}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Month</InputLabel>
+              <Select
+                value={transactionMonth}
+                label="Month"
+                onChange={(e) => setTransactionMonth(Number(e.target.value))}
+              >
+                {months.map((month) => (
+                  <MenuItem key={month.value} value={month.value}>
+                    {month.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Stack>
           <Button
             variant="contained"
