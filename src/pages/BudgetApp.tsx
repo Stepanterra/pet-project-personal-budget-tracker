@@ -41,6 +41,8 @@ const BudgetApp: React.FC = () => {
   const [description, setDescription] = useState<string>('');
   const [category, setCategory] = useState<string>('');
   const [type, setType] = useState<'income' | 'expense'>('income');
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
 
   const incomeCategories = ['Salary', 'Freelance', 'Investment', 'Other Income'];
   const expenseCategories = ['Food', 'Transport', 'Entertainment', 'Bills', 'Shopping', 'Other'];
@@ -67,17 +69,51 @@ const BudgetApp: React.FC = () => {
     setTransactions(transactions.filter(t => t.id !== id));
   };
 
-  const balance = transactions.reduce((acc, t) => {
+  // Filter transactions by selected year and month
+  const filteredTransactions = transactions.filter(t => {
+    const transactionDate = new Date(t.date);
+    return (
+      transactionDate.getFullYear() === selectedYear &&
+      transactionDate.getMonth() + 1 === selectedMonth
+    );
+  });
+
+  const balance = filteredTransactions.reduce((acc, t) => {
     return t.type === 'income' ? acc + t.amount : acc - t.amount;
   }, 0);
 
-  const totalIncome = transactions
+  const totalIncome = filteredTransactions
     .filter(t => t.type === 'income')
     .reduce((acc, t) => acc + t.amount, 0);
 
-  const totalExpenses = transactions
+  const totalExpenses = filteredTransactions
     .filter(t => t.type === 'expense')
     .reduce((acc, t) => acc + t.amount, 0);
+
+  // Get available years from transactions
+  const availableYears = Array.from(
+    new Set(transactions.map(t => new Date(t.date).getFullYear()))
+  ).sort((a, b) => b - a);
+
+  // If no transactions exist, include current year
+  if (availableYears.length === 0) {
+    availableYears.push(new Date().getFullYear());
+  }
+
+  const months = [
+    { value: 1, label: 'January' },
+    { value: 2, label: 'February' },
+    { value: 3, label: 'March' },
+    { value: 4, label: 'April' },
+    { value: 5, label: 'May' },
+    { value: 6, label: 'June' },
+    { value: 7, label: 'July' },
+    { value: 8, label: 'August' },
+    { value: 9, label: 'September' },
+    { value: 10, label: 'October' },
+    { value: 11, label: 'November' },
+    { value: 12, label: 'December' },
+  ];
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -193,16 +229,51 @@ const BudgetApp: React.FC = () => {
 
       {/* Transaction History */}
       <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Transaction History
-        </Typography>
-        {transactions.length === 0 ? (
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h6">
+            Transaction History
+          </Typography>
+          <Stack direction="row" spacing={2}>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Year</InputLabel>
+              <Select
+                value={selectedYear}
+                label="Year"
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+              >
+                {availableYears.map((year) => (
+                  <MenuItem key={year} value={year}>
+                    {year}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Month</InputLabel>
+              <Select
+                value={selectedMonth}
+                label="Month"
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              >
+                {months.map((month) => (
+                  <MenuItem key={month.value} value={month.value}>
+                    {month.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+        </Box>
+        {filteredTransactions.length === 0 ? (
           <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
-            No transactions yet. Add your first transaction above!
+            {transactions.length === 0 
+              ? "No transactions yet. Add your first transaction above!" 
+              : `No transactions found for ${months.find(m => m.value === selectedMonth)?.label} ${selectedYear}`
+            }
           </Typography>
         ) : (
           <List>
-            {transactions.map((transaction) => (
+            {filteredTransactions.map((transaction) => (
               <ListItem
                 key={transaction.id}
                 sx={{
