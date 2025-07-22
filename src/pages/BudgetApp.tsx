@@ -429,7 +429,7 @@ const BudgetApp: React.FC = () => {
                 <TableRow>
                   <TableHead className="font-medium">Category</TableHead>
                   {months.map((month) => (
-                    <TableHead key={month.value} className="text-center font-medium">
+                    <TableHead key={month.value} className={`text-center font-medium ${month.value === new Date().getMonth() + 1 ? 'bg-gray-200' : ''}`}>
                       {month.label.slice(0, 3)}
                     </TableHead>
                   ))}
@@ -459,11 +459,11 @@ const BudgetApp: React.FC = () => {
                     
                     const isNegative = runningBalance < 0;
                     
-                    return (
-                      <TableCell key={month.value} className={`text-center font-bold ${isNegative ? 'text-red-700 bg-red-100' : 'text-blue-700'}`}>
-                        ${Math.round(runningBalance)}
-                      </TableCell>
-                    );
+                     return (
+                       <TableCell key={month.value} className={`text-center font-bold ${isNegative ? 'text-red-700 bg-red-100' : 'text-blue-700'} ${month.value === new Date().getMonth() + 1 ? 'bg-gray-200' : ''}`}>
+                         ${Math.round(runningBalance)}
+                       </TableCell>
+                     );
                   })}
                   <TableCell className="text-center font-bold text-blue-700">
                     ${Math.round(transactions
@@ -504,16 +504,16 @@ const BudgetApp: React.FC = () => {
                    return (
                      <TableRow key={category} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelectedCategory(category)}>
                        <TableCell className="font-medium text-green-600">{category}</TableCell>
-                       {categoryData.map((amount, index) => (
-                         <TableCell key={index} className="text-center cursor-pointer hover:bg-gray-100" 
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             setSelectedCategory(category);
-                             setSelectedMonth(index + 1);
-                           }}>
-                            {amount > 0 ? `$${Math.round(amount)}` : '-'}
-                         </TableCell>
-                       ))}
+                        {categoryData.map((amount, index) => (
+                          <TableCell key={index} className={`text-center cursor-pointer hover:bg-gray-100 ${index + 1 === new Date().getMonth() + 1 ? 'bg-gray-200' : ''}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedCategory(category);
+                              setSelectedMonth(index + 1);
+                            }}>
+                             {amount > 0 ? `$${Math.round(amount)}` : '-'}
+                          </TableCell>
+                        ))}
                        <TableCell className="text-center font-medium text-green-600">
                           {total > 0 ? `$${Math.round(total)}` : '-'}
                        </TableCell>
@@ -532,11 +532,11 @@ const BudgetApp: React.FC = () => {
                         new Date(t.date).getMonth() + 1 === month.value
                       )
                       .reduce((acc, t) => acc + t.amount, 0);
-                    return (
-                      <TableCell key={month.value} className="text-center font-bold text-green-700">
-                        {monthlyIncome > 0 ? `$${Math.round(monthlyIncome)}` : '-'}
-                      </TableCell>
-                    );
+                     return (
+                       <TableCell key={month.value} className={`text-center font-bold text-green-700 ${month.value === new Date().getMonth() + 1 ? 'bg-gray-200' : ''}`}>
+                         {monthlyIncome > 0 ? `$${Math.round(monthlyIncome)}` : '-'}
+                       </TableCell>
+                     );
                   })}
                   <TableCell className="text-center font-bold text-green-700">
                     ${Math.round(transactions
@@ -576,16 +576,16 @@ const BudgetApp: React.FC = () => {
                     return (
                       <TableRow key={category} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelectedCategory(category)}>
                         <TableCell className="font-medium text-red-600">{category}</TableCell>
-                        {categoryData.map((amount, index) => (
-                          <TableCell key={index} className="text-center cursor-pointer hover:bg-gray-100"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedCategory(category);
-                              setSelectedMonth(index + 1);
-                            }}>
-                            {amount > 0 ? `$${Math.round(amount)}` : '-'}
-                          </TableCell>
-                        ))}
+                         {categoryData.map((amount, index) => (
+                           <TableCell key={index} className={`text-center cursor-pointer hover:bg-gray-100 ${index + 1 === new Date().getMonth() + 1 ? 'bg-gray-200' : ''}`}
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               setSelectedCategory(category);
+                               setSelectedMonth(index + 1);
+                             }}>
+                             {amount > 0 ? `$${Math.round(amount)}` : '-'}
+                           </TableCell>
+                         ))}
                         <TableCell className="text-center font-medium text-red-600">
                           {total > 0 ? `$${Math.round(total)}` : '-'}
                         </TableCell>
@@ -604,11 +604,11 @@ const BudgetApp: React.FC = () => {
                         new Date(t.date).getMonth() + 1 === month.value
                       )
                       .reduce((acc, t) => acc + t.amount, 0);
-                    return (
-                      <TableCell key={month.value} className="text-center font-bold text-red-700">
-                        {monthlyExpenses > 0 ? `$${Math.round(monthlyExpenses)}` : '-'}
-                      </TableCell>
-                    );
+                     return (
+                       <TableCell key={month.value} className={`text-center font-bold text-red-700 ${month.value === new Date().getMonth() + 1 ? 'bg-gray-200' : ''}`}>
+                         {monthlyExpenses > 0 ? `$${Math.round(monthlyExpenses)}` : '-'}
+                       </TableCell>
+                     );
                   })}
                   <TableCell className="text-center font-bold text-red-700">
                     ${Math.round(transactions
