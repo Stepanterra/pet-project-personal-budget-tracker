@@ -239,10 +239,18 @@ const BudgetApp: React.FC = () => {
   const isFormValid = amount && category && type;
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ height: '100vh', bgcolor: 'background.default', display: 'flex', flexDirection: 'column' }}>
       {/* Header with title and user menu */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, py: 2, borderBottom: 1, borderColor: 'divider' }}>
-        <Typography variant="h4" component="h1" color="primary" sx={{ fontWeight: 'bold' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, py: 2, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
+        <Typography 
+          variant="h4" 
+          component="h1" 
+          color="primary" 
+          sx={{ 
+            fontWeight: 'bold',
+            fontSize: { xs: '1.5rem', sm: '2.125rem' }
+          }}
+        >
           Personal Budget Tracker
         </Typography>
         
@@ -321,10 +329,10 @@ const BudgetApp: React.FC = () => {
       </Box>
 
       {/* Main content with padding */}
-      <Box sx={{ px: 2, py: 4 }}>
+      <Box sx={{ px: 2, py: 2, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
       {/* Balance Overview */}
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 4, maxWidth: '100%' }}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3, flexShrink: 0 }}>
         <Card sx={{ flex: 1 }}>
           <CardContent sx={{ textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">
@@ -368,9 +376,21 @@ const BudgetApp: React.FC = () => {
       </Stack>
 
       {/* Main Layout: Table (80%) + Transaction History (20%) */}
-      <Box sx={{ display: 'flex', gap: 3, minHeight: 'calc(100vh - 300px)' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', lg: 'row' },
+        gap: { xs: 2, lg: 3 }, 
+        flex: 1,
+        overflow: 'hidden'
+      }}>
         {/* Category Summary Table - 80% */}
-        <Paper sx={{ flex: 4, p: 3 }}>
+        <Paper sx={{ 
+          flex: { lg: 4 }, 
+          p: { xs: 2, sm: 3 },
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
             <Typography variant="h6">
               Category Summary by Month
@@ -403,7 +423,7 @@ const BudgetApp: React.FC = () => {
               </FormControl>
             </Stack>
           </Box>
-          <Box sx={{ overflowX: 'auto' }}>
+          <Box sx={{ overflowX: 'auto', overflowY: 'auto', flex: 1 }}>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -603,54 +623,71 @@ const BudgetApp: React.FC = () => {
         </Paper>
 
         {/* Transaction History + Add Transaction - 20% */}
-        <Paper sx={{ flex: 1, p: 3, display: 'flex', flexDirection: 'column' }}>
+        <Paper sx={{ 
+          flex: { lg: 1 }, 
+          p: { xs: 2, sm: 3 }, 
+          display: 'flex', 
+          flexDirection: 'column',
+          minHeight: { xs: '400px', lg: 'auto' },
+          overflow: 'hidden'
+        }}>
           {/* Add Transaction Form */}
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ flexShrink: 0, mb: 2 }}>
             <Typography variant="h6" gutterBottom>
               {editingTransaction ? 'Edit Transaction' : 'Add Transaction'}
             </Typography>
             {editingTransaction && (
-              <Box mb={2}>
-                <Chip 
-                  label="Editing transaction"
-                  color="primary"
-                  variant="filled"
-                  size="small"
-                  onDelete={cancelEdit}
-                />
-              </Box>
+              <Chip 
+                label="Editing"
+                color="primary"
+                size="small"
+                onDelete={cancelEdit}
+                sx={{ mb: 2 }}
+              />
             )}
             <Stack spacing={2}>
-              <FormControl fullWidth size="small" required>
-                <InputLabel>Type *</InputLabel>
-                <Select
-                  value={type}
-                  label="Type *"
-                  onChange={(e) => {
-                    setType(e.target.value as 'income' | 'expense');
-                    setCategory('');
-                  }}
-                >
-                  <MenuItem value="income">Income</MenuItem>
-                  <MenuItem value="expense">Expense</MenuItem>
-                </Select>
-              </FormControl>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 100 } }}>
+                  <InputLabel>Type</InputLabel>
+                  <Select
+                    value={type}
+                    label="Type"
+                    onChange={(e) => {
+                      setType(e.target.value as 'income' | 'expense');
+                      setCategory('');
+                    }}
+                  >
+                    <MenuItem value="income">Income</MenuItem>
+                    <MenuItem value="expense">Expense</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <TextField
+                  label="Amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  type="number"
+                  size="small"
+                  sx={{ minWidth: { xs: '100%', sm: 120 } }}
+                  inputProps={{ min: 0, step: 0.01 }}
+                  required
+                />
+              </Stack>
+
               <TextField
-                fullWidth
+                label="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 size="small"
-                label="Amount *"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                inputProps={{ min: 0, step: 0.01 }}
-                required
+                fullWidth
               />
+
               <Stack direction="row" spacing={1} alignItems="flex-end">
-                <FormControl fullWidth size="small" required sx={{ flex: 1 }}>
-                  <InputLabel>Category *</InputLabel>
+                <FormControl size="small" sx={{ flex: 1 }}>
+                  <InputLabel>Category</InputLabel>
                   <Select
                     value={category}
-                    label="Category *"
+                    label="Category"
                     onChange={(e) => setCategory(e.target.value)}
                   >
                     {(type === 'income' ? incomeCategories : expenseCategories).map((cat) => (
@@ -664,21 +701,20 @@ const BudgetApp: React.FC = () => {
                   size="small"
                   variant="outlined"
                   onClick={() => setShowAddCategory(!showAddCategory)}
-                  sx={{ minWidth: 'auto', px: 1 }}
+                  sx={{ minWidth: 40, px: 1 }}
                 >
                   +
                 </Button>
               </Stack>
-              
+
               {showAddCategory && (
                 <Stack direction="row" spacing={1}>
                   <TextField
-                    fullWidth
                     size="small"
                     label="New Category"
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
-                    placeholder={`Add ${type} category`}
+                    sx={{ flex: 1 }}
                   />
                   <Button
                     size="small"
@@ -688,27 +724,11 @@ const BudgetApp: React.FC = () => {
                   >
                     Add
                   </Button>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => {
-                      setShowAddCategory(false);
-                      setNewCategory('');
-                    }}
-                  >
-                    Cancel
-                  </Button>
                 </Stack>
               )}
-              <TextField
-                fullWidth
-                size="small"
-                label="Description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
+
               <Stack direction="row" spacing={1}>
-                <FormControl fullWidth size="small">
+                <FormControl size="small" sx={{ flex: 1 }}>
                   <InputLabel>Year</InputLabel>
                   <Select
                     value={transactionYear}
@@ -722,7 +742,8 @@ const BudgetApp: React.FC = () => {
                     ))}
                   </Select>
                 </FormControl>
-                <FormControl fullWidth size="small">
+
+                <FormControl size="small" sx={{ flex: 1 }}>
                   <InputLabel>Month</InputLabel>
                   <Select
                     value={transactionMonth}
@@ -737,19 +758,14 @@ const BudgetApp: React.FC = () => {
                   </Select>
                 </FormControl>
               </Stack>
+
               <Button
                 variant="contained"
-                startIcon={<AddIcon />}
                 onClick={addTransaction}
+                disabled={!isFormValid}
+                startIcon={<AddIcon />}
                 fullWidth
                 size="small"
-                disabled={!isFormValid}
-                sx={{
-                  bgcolor: isFormValid ? 'primary.main' : 'grey.400',
-                  '&:hover': {
-                    bgcolor: isFormValid ? 'primary.dark' : 'grey.400',
-                  }
-                }}
               >
                 {editingTransaction ? 'Update' : 'Add'}
               </Button>
@@ -760,13 +776,13 @@ const BudgetApp: React.FC = () => {
           <Divider sx={{ my: 2 }} />
 
           {/* Transaction History */}
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} sx={{ flexShrink: 0 }}>
               <Typography variant="h6">
                 History
               </Typography>
-              <Stack direction="row" spacing={1}>
-                <FormControl size="small" sx={{ minWidth: 80 }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <FormControl size="small" sx={{ minWidth: 70 }}>
                   <InputLabel>Year</InputLabel>
                   <Select
                     value={selectedYear}
@@ -780,7 +796,7 @@ const BudgetApp: React.FC = () => {
                     ))}
                   </Select>
                 </FormControl>
-                <FormControl size="small" sx={{ minWidth: 80 }}>
+                <FormControl size="small" sx={{ minWidth: 70 }}>
                   <InputLabel>Month</InputLabel>
                   <Select
                     value={selectedMonth}
@@ -798,7 +814,7 @@ const BudgetApp: React.FC = () => {
             </Box>
             
             {selectedCategory && (
-              <Box mb={2}>
+              <Box mb={2} sx={{ flexShrink: 0 }}>
                 <Chip 
                   label={selectedCategory}
                   onDelete={() => setSelectedCategory('')}
@@ -809,7 +825,7 @@ const BudgetApp: React.FC = () => {
               </Box>
             )}
 
-            <List sx={{ flex: 1, overflow: 'auto', maxHeight: 'calc(100vh - 600px)' }}>
+            <List sx={{ flex: 1, overflow: 'auto', px: 0 }}>
               {filteredTransactions.length === 0 ? (
                 <Typography color="text.secondary" align="center" sx={{ py: 2 }}>
                   No transactions
