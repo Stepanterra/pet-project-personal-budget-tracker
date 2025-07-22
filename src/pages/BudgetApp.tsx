@@ -21,6 +21,7 @@ import {
   Avatar,
   Checkbox,
   FormControlLabel,
+  Divider,
 } from '@mui/material';
 import {
   Table,
@@ -754,6 +755,9 @@ const BudgetApp: React.FC = () => {
               </Button>
             </Stack>
           </Box>
+
+          {/* Divider */}
+          <Divider sx={{ my: 2 }} />
 
           {/* Transaction History */}
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
