@@ -238,7 +238,7 @@ const BudgetApp: React.FC = () => {
             
             <Box className="mt-4 pt-3 border-t text-center">
               <Typography variant="caption" color="text.secondary">
-                © Copyright 2025 HeidelbergCement | Hub 2.119.4.2 prod
+                Copyrights 2025
               </Typography>
             </Box>
           </DropdownMenuContent>
