@@ -49,6 +49,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   Add as AddIcon,
   TrendingUp as IncomeIcon,
   TrendingDown as ExpenseIcon,
@@ -239,6 +245,7 @@ const BudgetApp: React.FC = () => {
   const isFormValid = amount && category && type;
 
   return (
+    <TooltipProvider>
     <Box sx={{ height: '100vh', bgcolor: 'background.default', display: 'flex', flexDirection: 'column' }}>
       {/* Header with title and user menu */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, py: 2, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
@@ -697,14 +704,21 @@ const BudgetApp: React.FC = () => {
                     ))}
                   </Select>
                 </FormControl>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => setShowAddCategory(!showAddCategory)}
-                  sx={{ minWidth: 40, px: 1 }}
-                >
-                  +
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => setShowAddCategory(!showAddCategory)}
+                      sx={{ minWidth: 40, px: 1 }}
+                    >
+                      +
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Add new category</p>
+                  </TooltipContent>
+                </Tooltip>
               </Stack>
 
               {showAddCategory && (
@@ -910,6 +924,7 @@ const BudgetApp: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
     </Box>
+    </TooltipProvider>
   );
 };
 
