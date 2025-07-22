@@ -246,15 +246,15 @@ const BudgetApp: React.FC = () => {
                     
                     return (
                       <TableCell key={month.value} className="text-center font-bold text-blue-700">
-                        ${runningBalance.toFixed(2)}
+                        ${Math.round(runningBalance)}
                       </TableCell>
                     );
                   })}
                   <TableCell className="text-center font-bold text-blue-700">
-                    ${transactions
+                    ${Math.round(transactions
                       .filter(t => new Date(t.date).getFullYear() === selectedYear)
                       .reduce((acc, t) => t.type === 'income' ? acc + t.amount : acc - t.amount, 0)
-                      .toFixed(2)}
+                    )}
                   </TableCell>
                 </TableRow>
               </TableHeader>
@@ -284,11 +284,11 @@ const BudgetApp: React.FC = () => {
                              setSelectedCategory(category);
                              setSelectedMonth(index + 1);
                            }}>
-                           {amount > 0 ? `$${amount.toFixed(2)}` : '-'}
+                            {amount > 0 ? `$${Math.round(amount)}` : '-'}
                          </TableCell>
                        ))}
                        <TableCell className="text-center font-medium text-green-600">
-                         {total > 0 ? `$${total.toFixed(2)}` : '-'}
+                          {total > 0 ? `$${Math.round(total)}` : '-'}
                        </TableCell>
                      </TableRow>
                    );
@@ -307,15 +307,15 @@ const BudgetApp: React.FC = () => {
                       .reduce((acc, t) => acc + t.amount, 0);
                     return (
                       <TableCell key={month.value} className="text-center font-bold text-green-700">
-                        {monthlyIncome > 0 ? `$${monthlyIncome.toFixed(2)}` : '-'}
+                        {monthlyIncome > 0 ? `$${Math.round(monthlyIncome)}` : '-'}
                       </TableCell>
                     );
                   })}
                   <TableCell className="text-center font-bold text-green-700">
-                    ${transactions
+                    ${Math.round(transactions
                       .filter(t => t.type === 'income' && new Date(t.date).getFullYear() === selectedYear)
                       .reduce((acc, t) => acc + t.amount, 0)
-                      .toFixed(2)}
+                    )}
                   </TableCell>
                 </TableRow>
                 
@@ -344,11 +344,11 @@ const BudgetApp: React.FC = () => {
                              setSelectedCategory(category);
                              setSelectedMonth(index + 1);
                            }}>
-                           {amount > 0 ? `$${amount.toFixed(2)}` : '-'}
+                           {amount > 0 ? `$${Math.round(amount)}` : '-'}
                          </TableCell>
                        ))}
                        <TableCell className="text-center font-medium text-red-600">
-                         {total > 0 ? `$${total.toFixed(2)}` : '-'}
+                         {total > 0 ? `$${Math.round(total)}` : '-'}
                        </TableCell>
                      </TableRow>
                    );
@@ -367,15 +367,15 @@ const BudgetApp: React.FC = () => {
                       .reduce((acc, t) => acc + t.amount, 0);
                     return (
                       <TableCell key={month.value} className="text-center font-bold text-red-700">
-                        {monthlyExpenses > 0 ? `$${monthlyExpenses.toFixed(2)}` : '-'}
+                        {monthlyExpenses > 0 ? `$${Math.round(monthlyExpenses)}` : '-'}
                       </TableCell>
                     );
                   })}
                   <TableCell className="text-center font-bold text-red-700">
-                    ${transactions
+                    ${Math.round(transactions
                       .filter(t => t.type === 'expense' && new Date(t.date).getFullYear() === selectedYear)
                       .reduce((acc, t) => acc + t.amount, 0)
-                      .toFixed(2)}
+                    )}
                   </TableCell>
                 </TableRow>
               </TableBody>
