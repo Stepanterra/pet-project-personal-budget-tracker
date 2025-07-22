@@ -822,18 +822,16 @@ const BudgetApp: React.FC = () => {
                       border: 1,
                       borderColor: 'divider',
                       borderRadius: 1,
-                      mb: 0.5,
+                      mb: 1,
                       bgcolor: 'background.paper',
-                      p: 0.5,
-                      minHeight: 'auto',
+                      p: 1,
                     }}
                     secondaryAction={
-                      <Stack direction="row" spacing={0.25}>
+                      <Stack direction="row" spacing={0.5}>
                         <IconButton
                           onClick={() => editTransaction(transaction)}
                           color="primary"
                           size="small"
-                          sx={{ p: 0.5 }}
                         >
                           <EditIcon fontSize="small" />
                         </IconButton>
@@ -841,7 +839,6 @@ const BudgetApp: React.FC = () => {
                           onClick={() => promptDeleteTransaction(transaction.id)}
                           color="error"
                           size="small"
-                          sx={{ p: 0.5 }}
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
