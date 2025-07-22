@@ -40,6 +40,7 @@ import {
   TrendingUp as IncomeIcon,
   TrendingDown as ExpenseIcon,
   Delete as DeleteIcon,
+  Edit as EditIcon,
   Person as PersonIcon,
   Settings as SettingsIcon,
   Help as HelpIcon,
@@ -72,6 +73,7 @@ const BudgetApp: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [newCategory, setNewCategory] = useState<string>('');
   const [showAddCategory, setShowAddCategory] = useState<boolean>(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const [incomeCategories, setIncomeCategories] = useState(['Salary', 'Freelance', 'Investment', 'Other Income']);
   const [expenseCategories, setExpenseCategories] = useState(['Food', 'Transport', 'Entertainment', 'Bills', 'Shopping', 'Other']);
@@ -82,19 +84,58 @@ const BudgetApp: React.FC = () => {
     // Create date with selected year and month (first day of the month)
     const transactionDate = new Date(transactionYear, transactionMonth - 1, 1);
 
-    const newTransaction: Transaction = {
-      id: Date.now().toString(),
-      type,
-      amount: parseFloat(amount),
-      description,
-      category,
-      date: transactionDate,
-    };
+    if (editingTransaction) {
+      // Update existing transaction
+      const updatedTransaction: Transaction = {
+        ...editingTransaction,
+        type,
+        amount: parseFloat(amount),
+        description,
+        category,
+        date: transactionDate,
+      };
 
-    setTransactions([newTransaction, ...transactions]);
+      setTransactions(transactions.map(t => 
+        t.id === editingTransaction.id ? updatedTransaction : t
+      ));
+      setEditingTransaction(null);
+    } else {
+      // Add new transaction
+      const newTransaction: Transaction = {
+        id: Date.now().toString(),
+        type,
+        amount: parseFloat(amount),
+        description,
+        category,
+        date: transactionDate,
+      };
+
+      setTransactions([newTransaction, ...transactions]);
+    }
+
     setAmount('');
     setDescription('');
     setCategory('');
+  };
+
+  const editTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setType(transaction.type);
+    setAmount(transaction.amount.toString());
+    setDescription(transaction.description);
+    setCategory(transaction.category);
+    setTransactionYear(new Date(transaction.date).getFullYear());
+    setTransactionMonth(new Date(transaction.date).getMonth() + 1);
+  };
+
+  const cancelEdit = () => {
+    setEditingTransaction(null);
+    setAmount('');
+    setDescription('');
+    setCategory('');
+    setType('income');
+    setTransactionYear(new Date().getFullYear());
+    setTransactionMonth(new Date().getMonth() + 1);
   };
 
   const addCategory = () => {
@@ -495,8 +536,19 @@ const BudgetApp: React.FC = () => {
           {/* Add Transaction Form */}
           <Box sx={{ mb: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Add Transaction
+              {editingTransaction ? 'Edit Transaction' : 'Add Transaction'}
             </Typography>
+            {editingTransaction && (
+              <Box mb={2}>
+                <Chip 
+                  label="Editing transaction"
+                  color="primary"
+                  variant="filled"
+                  size="small"
+                  onDelete={cancelEdit}
+                />
+              </Box>
+            )}
             <Stack spacing={2}>
               <FormControl fullWidth size="small" required>
                 <InputLabel>Type *</InputLabel>
@@ -628,7 +680,7 @@ const BudgetApp: React.FC = () => {
                   }
                 }}
               >
-                Add
+                {editingTransaction ? 'Update' : 'Add'}
               </Button>
             </Stack>
           </Box>
@@ -701,14 +753,22 @@ const BudgetApp: React.FC = () => {
                       p: 1,
                     }}
                     secondaryAction={
-                      <IconButton
-                        edge="end"
-                        onClick={() => deleteTransaction(transaction.id)}
-                        color="error"
-                        size="small"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                      <Stack direction="row" spacing={0.5}>
+                        <IconButton
+                          onClick={() => editTransaction(transaction)}
+                          color="primary"
+                          size="small"
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => deleteTransaction(transaction.id)}
+                          color="error"
+                          size="small"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Stack>
                     }
                   >
                     <ListItemText
