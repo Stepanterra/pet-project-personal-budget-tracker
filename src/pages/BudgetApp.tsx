@@ -53,6 +53,7 @@ const BudgetApp: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [transactionYear, setTransactionYear] = useState<number>(new Date().getFullYear());
   const [transactionMonth, setTransactionMonth] = useState<number>(new Date().getMonth() + 1);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   const incomeCategories = ['Salary', 'Freelance', 'Investment', 'Other Income'];
   const expenseCategories = ['Food', 'Transport', 'Entertainment', 'Bills', 'Shopping', 'Other'];
@@ -85,10 +86,11 @@ const BudgetApp: React.FC = () => {
   // Filter transactions by selected year and month
   const filteredTransactions = transactions.filter(t => {
     const transactionDate = new Date(t.date);
-    return (
-      transactionDate.getFullYear() === selectedYear &&
-      transactionDate.getMonth() + 1 === selectedMonth
-    );
+    const yearMatch = transactionDate.getFullYear() === selectedYear;
+    const monthMatch = transactionDate.getMonth() + 1 === selectedMonth;
+    const categoryMatch = selectedCategory === '' || t.category === selectedCategory;
+    
+    return yearMatch && monthMatch && categoryMatch;
   });
 
   const balance = filteredTransactions.reduce((acc, t) => {
@@ -180,9 +182,25 @@ const BudgetApp: React.FC = () => {
 
       {/* Category Summary Table */}
       <Paper sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          Category Summary by Month
-        </Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h6">
+            Category Summary by Month
+          </Typography>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Year</InputLabel>
+            <Select
+              value={selectedYear}
+              label="Year"
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+            >
+              {availableYears.map((year) => (
+                <MenuItem key={year} value={year}>
+                  {year}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
         <Box sx={{ overflowX: 'auto' }}>
           <Table>
             <TableHeader>
@@ -194,6 +212,45 @@ const BudgetApp: React.FC = () => {
                   </TableHead>
                 ))}
                 <TableHead className="text-center font-medium">Total</TableHead>
+              </TableRow>
+              {/* Running Balance Row */}
+              <TableRow className="bg-blue-50">
+                <TableCell className="font-bold text-blue-700">Running Balance</TableCell>
+                {months.map((month, index) => {
+                  // Calculate running balance up to this month
+                  let runningBalance = 0;
+                  for (let i = 1; i <= month.value; i++) {
+                    const monthlyIncome = transactions
+                      .filter(t => 
+                        t.type === 'income' &&
+                        new Date(t.date).getFullYear() === selectedYear &&
+                        new Date(t.date).getMonth() + 1 === i
+                      )
+                      .reduce((acc, t) => acc + t.amount, 0);
+                    
+                    const monthlyExpenses = transactions
+                      .filter(t => 
+                        t.type === 'expense' &&
+                        new Date(t.date).getFullYear() === selectedYear &&
+                        new Date(t.date).getMonth() + 1 === i
+                      )
+                      .reduce((acc, t) => acc + t.amount, 0);
+                    
+                    runningBalance += monthlyIncome - monthlyExpenses;
+                  }
+                  
+                  return (
+                    <TableCell key={month.value} className="text-center font-bold text-blue-700">
+                      ${runningBalance.toFixed(2)}
+                    </TableCell>
+                  );
+                })}
+                <TableCell className="text-center font-bold text-blue-700">
+                  ${transactions
+                    .filter(t => new Date(t.date).getFullYear() === selectedYear)
+                    .reduce((acc, t) => t.type === 'income' ? acc + t.amount : acc - t.amount, 0)
+                    .toFixed(2)}
+                </TableCell>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -212,19 +269,24 @@ const BudgetApp: React.FC = () => {
                 });
                 const total = categoryData.reduce((acc, val) => acc + val, 0);
                 
-                return (
-                  <TableRow key={category}>
-                    <TableCell className="font-medium text-green-600">{category}</TableCell>
-                    {categoryData.map((amount, index) => (
-                      <TableCell key={index} className="text-center">
-                        {amount > 0 ? `$${amount.toFixed(2)}` : '-'}
-                      </TableCell>
-                    ))}
-                    <TableCell className="text-center font-medium text-green-600">
-                      {total > 0 ? `$${total.toFixed(2)}` : '-'}
-                    </TableCell>
-                  </TableRow>
-                );
+                 return (
+                   <TableRow key={category} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelectedCategory(category)}>
+                     <TableCell className="font-medium text-green-600">{category}</TableCell>
+                     {categoryData.map((amount, index) => (
+                       <TableCell key={index} className="text-center cursor-pointer hover:bg-gray-100" 
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           setSelectedCategory(category);
+                           setSelectedMonth(index + 1);
+                         }}>
+                         {amount > 0 ? `$${amount.toFixed(2)}` : '-'}
+                       </TableCell>
+                     ))}
+                     <TableCell className="text-center font-medium text-green-600">
+                       {total > 0 ? `$${total.toFixed(2)}` : '-'}
+                     </TableCell>
+                   </TableRow>
+                 );
               })}
               
               {/* Income Subtotal */}
@@ -267,19 +329,24 @@ const BudgetApp: React.FC = () => {
                 });
                 const total = categoryData.reduce((acc, val) => acc + val, 0);
                 
-                return (
-                  <TableRow key={category}>
-                    <TableCell className="font-medium text-red-600">{category}</TableCell>
-                    {categoryData.map((amount, index) => (
-                      <TableCell key={index} className="text-center">
-                        {amount > 0 ? `$${amount.toFixed(2)}` : '-'}
-                      </TableCell>
-                    ))}
-                    <TableCell className="text-center font-medium text-red-600">
-                      {total > 0 ? `$${total.toFixed(2)}` : '-'}
-                    </TableCell>
-                  </TableRow>
-                );
+                 return (
+                   <TableRow key={category} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelectedCategory(category)}>
+                     <TableCell className="font-medium text-red-600">{category}</TableCell>
+                     {categoryData.map((amount, index) => (
+                       <TableCell key={index} className="text-center cursor-pointer hover:bg-gray-100"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           setSelectedCategory(category);
+                           setSelectedMonth(index + 1);
+                         }}>
+                         {amount > 0 ? `$${amount.toFixed(2)}` : '-'}
+                       </TableCell>
+                     ))}
+                     <TableCell className="text-center font-medium text-red-600">
+                       {total > 0 ? `$${total.toFixed(2)}` : '-'}
+                     </TableCell>
+                   </TableRow>
+                 );
               })}
               
               {/* Expense Subtotal */}
@@ -410,9 +477,22 @@ const BudgetApp: React.FC = () => {
         {/* Transaction History */}
         <Paper sx={{ p: 3, flex: 1.5 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6">
-            Transaction History
-          </Typography>
+          <Box>
+            <Typography variant="h6">
+              Transaction History
+            </Typography>
+            {selectedCategory && (
+              <Box display="flex" alignItems="center" gap={1} mt={1}>
+                <Chip
+                  label={`Category: ${selectedCategory}`}
+                  onDelete={() => setSelectedCategory('')}
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                />
+              </Box>
+            )}
+          </Box>
           <Stack direction="row" spacing={2}>
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Year</InputLabel>
