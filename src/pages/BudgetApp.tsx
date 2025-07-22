@@ -20,6 +20,14 @@ import {
   Stack,
 } from '@mui/material';
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
   Add as AddIcon,
   TrendingUp as IncomeIcon,
   TrendingDown as ExpenseIcon,
@@ -169,6 +177,89 @@ const BudgetApp: React.FC = () => {
           </CardContent>
         </Card>
       </Stack>
+
+      {/* Category Summary Table */}
+      <Paper sx={{ p: 3, mb: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          Category Summary by Month
+        </Typography>
+        <Box sx={{ overflowX: 'auto' }}>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="font-medium">Category</TableHead>
+                {months.map((month) => (
+                  <TableHead key={month.value} className="text-center font-medium">
+                    {month.label.slice(0, 3)}
+                  </TableHead>
+                ))}
+                <TableHead className="text-center font-medium">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {/* Income Categories */}
+              {incomeCategories.map((category) => {
+                const categoryData = months.map((month) => {
+                  const sum = transactions
+                    .filter(t => 
+                      t.type === 'income' && 
+                      t.category === category &&
+                      new Date(t.date).getFullYear() === selectedYear &&
+                      new Date(t.date).getMonth() + 1 === month.value
+                    )
+                    .reduce((acc, t) => acc + t.amount, 0);
+                  return sum;
+                });
+                const total = categoryData.reduce((acc, val) => acc + val, 0);
+                
+                return (
+                  <TableRow key={category}>
+                    <TableCell className="font-medium text-green-600">{category}</TableCell>
+                    {categoryData.map((amount, index) => (
+                      <TableCell key={index} className="text-center">
+                        {amount > 0 ? `$${amount.toFixed(2)}` : '-'}
+                      </TableCell>
+                    ))}
+                    <TableCell className="text-center font-medium text-green-600">
+                      {total > 0 ? `$${total.toFixed(2)}` : '-'}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              
+              {/* Expense Categories */}
+              {expenseCategories.map((category) => {
+                const categoryData = months.map((month) => {
+                  const sum = transactions
+                    .filter(t => 
+                      t.type === 'expense' && 
+                      t.category === category &&
+                      new Date(t.date).getFullYear() === selectedYear &&
+                      new Date(t.date).getMonth() + 1 === month.value
+                    )
+                    .reduce((acc, t) => acc + t.amount, 0);
+                  return sum;
+                });
+                const total = categoryData.reduce((acc, val) => acc + val, 0);
+                
+                return (
+                  <TableRow key={category}>
+                    <TableCell className="font-medium text-red-600">{category}</TableCell>
+                    {categoryData.map((amount, index) => (
+                      <TableCell key={index} className="text-center">
+                        {amount > 0 ? `$${amount.toFixed(2)}` : '-'}
+                      </TableCell>
+                    ))}
+                    <TableCell className="text-center font-medium text-red-600">
+                      {total > 0 ? `$${total.toFixed(2)}` : '-'}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </Box>
+      </Paper>
 
       {/* Main Content - Side by Side */}
       <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} sx={{ mb: 4 }}>
