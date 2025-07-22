@@ -227,6 +227,31 @@ const BudgetApp: React.FC = () => {
                 );
               })}
               
+              {/* Income Subtotal */}
+              <TableRow className="bg-green-50">
+                <TableCell className="font-bold text-green-700">Income Subtotal</TableCell>
+                {months.map((month) => {
+                  const monthlyIncome = transactions
+                    .filter(t => 
+                      t.type === 'income' &&
+                      new Date(t.date).getFullYear() === selectedYear &&
+                      new Date(t.date).getMonth() + 1 === month.value
+                    )
+                    .reduce((acc, t) => acc + t.amount, 0);
+                  return (
+                    <TableCell key={month.value} className="text-center font-bold text-green-700">
+                      {monthlyIncome > 0 ? `$${monthlyIncome.toFixed(2)}` : '-'}
+                    </TableCell>
+                  );
+                })}
+                <TableCell className="text-center font-bold text-green-700">
+                  ${transactions
+                    .filter(t => t.type === 'income' && new Date(t.date).getFullYear() === selectedYear)
+                    .reduce((acc, t) => acc + t.amount, 0)
+                    .toFixed(2)}
+                </TableCell>
+              </TableRow>
+              
               {/* Expense Categories */}
               {expenseCategories.map((category) => {
                 const categoryData = months.map((month) => {
@@ -256,6 +281,31 @@ const BudgetApp: React.FC = () => {
                   </TableRow>
                 );
               })}
+              
+              {/* Expense Subtotal */}
+              <TableRow className="bg-red-50">
+                <TableCell className="font-bold text-red-700">Expense Subtotal</TableCell>
+                {months.map((month) => {
+                  const monthlyExpenses = transactions
+                    .filter(t => 
+                      t.type === 'expense' &&
+                      new Date(t.date).getFullYear() === selectedYear &&
+                      new Date(t.date).getMonth() + 1 === month.value
+                    )
+                    .reduce((acc, t) => acc + t.amount, 0);
+                  return (
+                    <TableCell key={month.value} className="text-center font-bold text-red-700">
+                      {monthlyExpenses > 0 ? `$${monthlyExpenses.toFixed(2)}` : '-'}
+                    </TableCell>
+                  );
+                })}
+                <TableCell className="text-center font-bold text-red-700">
+                  ${transactions
+                    .filter(t => t.type === 'expense' && new Date(t.date).getFullYear() === selectedYear)
+                    .reduce((acc, t) => acc + t.amount, 0)
+                    .toFixed(2)}
+                </TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </Box>
