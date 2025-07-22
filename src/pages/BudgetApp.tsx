@@ -19,6 +19,8 @@ import {
   IconButton,
   Stack,
   Avatar,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import {
   Table,
@@ -74,6 +76,7 @@ const BudgetApp: React.FC = () => {
   const [newCategory, setNewCategory] = useState<string>('');
   const [showAddCategory, setShowAddCategory] = useState<boolean>(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [showZeroCategories, setShowZeroCategories] = useState<boolean>(true);
 
   const [incomeCategories, setIncomeCategories] = useState(['Salary', 'Freelance', 'Investment', 'Other Income']);
   const [expenseCategories, setExpenseCategories] = useState(['Food', 'Transport', 'Entertainment', 'Bills', 'Shopping', 'Other']);
@@ -341,20 +344,33 @@ const BudgetApp: React.FC = () => {
             <Typography variant="h6">
               Category Summary by Month
             </Typography>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Year</InputLabel>
-              <Select
-                value={selectedYear}
-                label="Year"
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-              >
-                {availableYears.map((year) => (
-                  <MenuItem key={year} value={year}>
-                    {year}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={showZeroCategories}
+                    onChange={(e) => setShowZeroCategories(e.target.checked)}
+                    size="small"
+                  />
+                }
+                label="Show zero categories"
+                sx={{ color: 'text.secondary', '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}
+              />
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>Year</InputLabel>
+                <Select
+                  value={selectedYear}
+                  label="Year"
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                >
+                  {availableYears.map((year) => (
+                    <MenuItem key={year} value={year}>
+                      {year}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Stack>
           </Box>
           <Box sx={{ overflowX: 'auto' }}>
             <Table>
@@ -408,7 +424,19 @@ const BudgetApp: React.FC = () => {
               </TableHeader>
               <TableBody>
                 {/* Income Categories */}
-                {incomeCategories.map((category) => {
+                {incomeCategories
+                  .filter(category => {
+                    if (showZeroCategories) return true;
+                    const total = transactions
+                      .filter(t => 
+                        t.type === 'income' && 
+                        t.category === category &&
+                        new Date(t.date).getFullYear() === selectedYear
+                      )
+                      .reduce((acc, t) => acc + t.amount, 0);
+                    return total > 0;
+                  })
+                  .map((category) => {
                   const categoryData = months.map((month) => {
                     const sum = transactions
                       .filter(t => 
@@ -468,39 +496,51 @@ const BudgetApp: React.FC = () => {
                 </TableRow>
                 
                 {/* Expense Categories */}
-                {expenseCategories.map((category) => {
-                  const categoryData = months.map((month) => {
-                    const sum = transactions
+                {expenseCategories
+                  .filter(category => {
+                    if (showZeroCategories) return true;
+                    const total = transactions
                       .filter(t => 
                         t.type === 'expense' && 
                         t.category === category &&
-                        new Date(t.date).getFullYear() === selectedYear &&
-                        new Date(t.date).getMonth() + 1 === month.value
+                        new Date(t.date).getFullYear() === selectedYear
                       )
                       .reduce((acc, t) => acc + t.amount, 0);
-                    return sum;
-                  });
-                  const total = categoryData.reduce((acc, val) => acc + val, 0);
-                  
-                   return (
-                     <TableRow key={category} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelectedCategory(category)}>
-                       <TableCell className="font-medium text-red-600">{category}</TableCell>
-                       {categoryData.map((amount, index) => (
-                         <TableCell key={index} className="text-center cursor-pointer hover:bg-gray-100"
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             setSelectedCategory(category);
-                             setSelectedMonth(index + 1);
-                           }}>
-                           {amount > 0 ? `$${Math.round(amount)}` : '-'}
-                         </TableCell>
-                       ))}
-                       <TableCell className="text-center font-medium text-red-600">
-                         {total > 0 ? `$${Math.round(total)}` : '-'}
-                       </TableCell>
-                     </TableRow>
-                   );
-                })}
+                    return total > 0;
+                  })
+                  .map((category) => {
+                   const categoryData = months.map((month) => {
+                     const sum = transactions
+                       .filter(t => 
+                         t.type === 'expense' && 
+                         t.category === category &&
+                         new Date(t.date).getFullYear() === selectedYear &&
+                         new Date(t.date).getMonth() + 1 === month.value
+                       )
+                       .reduce((acc, t) => acc + t.amount, 0);
+                     return sum;
+                   });
+                   const total = categoryData.reduce((acc, val) => acc + val, 0);
+                   
+                    return (
+                      <TableRow key={category} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelectedCategory(category)}>
+                        <TableCell className="font-medium text-red-600">{category}</TableCell>
+                        {categoryData.map((amount, index) => (
+                          <TableCell key={index} className="text-center cursor-pointer hover:bg-gray-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedCategory(category);
+                              setSelectedMonth(index + 1);
+                            }}>
+                            {amount > 0 ? `$${Math.round(amount)}` : '-'}
+                          </TableCell>
+                        ))}
+                        <TableCell className="text-center font-medium text-red-600">
+                          {total > 0 ? `$${Math.round(total)}` : '-'}
+                        </TableCell>
+                      </TableRow>
+                    );
+                 })}
                 
                 {/* Expense Subtotal */}
                 <TableRow className="bg-red-50">
