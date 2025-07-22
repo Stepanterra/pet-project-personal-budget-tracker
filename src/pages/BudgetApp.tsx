@@ -97,6 +97,7 @@ const BudgetApp: React.FC = () => {
                 selectedMonth={budgetData.selectedMonth}
                 selectedCategory={budgetData.selectedCategory}
                 availableYears={availableYears}
+                editingTransaction={budgetData.editingTransaction}
                 onYearChange={budgetData.setSelectedYear}
                 onMonthChange={budgetData.setSelectedMonth}
                 onClearCategory={() => budgetData.setSelectedCategory('')}

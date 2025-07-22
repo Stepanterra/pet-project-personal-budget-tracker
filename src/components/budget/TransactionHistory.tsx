@@ -10,6 +10,7 @@ interface TransactionHistoryProps {
   selectedMonth: number;
   selectedCategory: string;
   availableYears: number[];
+  editingTransaction: Transaction | null;
   onYearChange: (year: number) => void;
   onMonthChange: (month: number) => void;
   onClearCategory: () => void;
@@ -23,6 +24,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
   selectedMonth,
   selectedCategory,
   availableYears,
+  editingTransaction,
   onYearChange,
   onMonthChange,
   onClearCategory,
@@ -103,6 +105,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                     onClick={() => onEditTransaction(transaction)}
                     color="primary"
                     size="small"
+                    disabled={editingTransaction !== null}
                   >
                     <EditIcon fontSize="small" />
                   </IconButton>
@@ -110,6 +113,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                     onClick={() => onDeleteTransaction(transaction.id)}
                     color="error"
                     size="small"
+                    disabled={editingTransaction !== null}
                   >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
