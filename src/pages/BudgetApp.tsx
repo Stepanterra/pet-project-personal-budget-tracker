@@ -131,13 +131,13 @@ const BudgetApp: React.FC = () => {
   ];
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', px: 2, py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
         Personal Budget Tracker
       </Typography>
 
       {/* Balance Overview */}
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 4 }}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 4, maxWidth: '100%' }}>
         <Card sx={{ flex: 1 }}>
           <CardContent sx={{ textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">
@@ -180,214 +180,215 @@ const BudgetApp: React.FC = () => {
         </Card>
       </Stack>
 
-      {/* Category Summary Table */}
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6">
-            Category Summary by Month
-          </Typography>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Year</InputLabel>
-            <Select
-              value={selectedYear}
-              label="Year"
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-            >
-              {availableYears.map((year) => (
-                <MenuItem key={year} value={year}>
-                  {year}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-        <Box sx={{ overflowX: 'auto' }}>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-medium">Category</TableHead>
-                {months.map((month) => (
-                  <TableHead key={month.value} className="text-center font-medium">
-                    {month.label.slice(0, 3)}
-                  </TableHead>
+      {/* Main Layout: Table (80%) + Transaction History (20%) */}
+      <Box sx={{ display: 'flex', gap: 3, minHeight: 'calc(100vh - 300px)' }}>
+        {/* Category Summary Table - 80% */}
+        <Paper sx={{ flex: 4, p: 3 }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Typography variant="h6">
+              Category Summary by Month
+            </Typography>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Year</InputLabel>
+              <Select
+                value={selectedYear}
+                label="Year"
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+              >
+                {availableYears.map((year) => (
+                  <MenuItem key={year} value={year}>
+                    {year}
+                  </MenuItem>
                 ))}
-                <TableHead className="text-center font-medium">Total</TableHead>
-              </TableRow>
-              {/* Running Balance Row */}
-              <TableRow className="bg-blue-50">
-                <TableCell className="font-bold text-blue-700">Running Balance</TableCell>
-                {months.map((month, index) => {
-                  // Calculate running balance up to this month
-                  let runningBalance = 0;
-                  for (let i = 1; i <= month.value; i++) {
+              </Select>
+            </FormControl>
+          </Box>
+          <Box sx={{ overflowX: 'auto' }}>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="font-medium">Category</TableHead>
+                  {months.map((month) => (
+                    <TableHead key={month.value} className="text-center font-medium">
+                      {month.label.slice(0, 3)}
+                    </TableHead>
+                  ))}
+                  <TableHead className="text-center font-medium">Total</TableHead>
+                </TableRow>
+                {/* Running Balance Row */}
+                <TableRow className="bg-blue-50">
+                  <TableCell className="font-bold text-blue-700">Running Balance</TableCell>
+                  {months.map((month, index) => {
+                    // Calculate running balance up to this month
+                    let runningBalance = 0;
+                    for (let i = 1; i <= month.value; i++) {
+                      const monthlyIncome = transactions
+                        .filter(t => 
+                          t.type === 'income' &&
+                          new Date(t.date).getFullYear() === selectedYear &&
+                          new Date(t.date).getMonth() + 1 === i
+                        )
+                        .reduce((acc, t) => acc + t.amount, 0);
+                      
+                      const monthlyExpenses = transactions
+                        .filter(t => 
+                          t.type === 'expense' &&
+                          new Date(t.date).getFullYear() === selectedYear &&
+                          new Date(t.date).getMonth() + 1 === i
+                        )
+                        .reduce((acc, t) => acc + t.amount, 0);
+                      
+                      runningBalance += monthlyIncome - monthlyExpenses;
+                    }
+                    
+                    return (
+                      <TableCell key={month.value} className="text-center font-bold text-blue-700">
+                        ${runningBalance.toFixed(2)}
+                      </TableCell>
+                    );
+                  })}
+                  <TableCell className="text-center font-bold text-blue-700">
+                    ${transactions
+                      .filter(t => new Date(t.date).getFullYear() === selectedYear)
+                      .reduce((acc, t) => t.type === 'income' ? acc + t.amount : acc - t.amount, 0)
+                      .toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {/* Income Categories */}
+                {incomeCategories.map((category) => {
+                  const categoryData = months.map((month) => {
+                    const sum = transactions
+                      .filter(t => 
+                        t.type === 'income' && 
+                        t.category === category &&
+                        new Date(t.date).getFullYear() === selectedYear &&
+                        new Date(t.date).getMonth() + 1 === month.value
+                      )
+                      .reduce((acc, t) => acc + t.amount, 0);
+                    return sum;
+                  });
+                  const total = categoryData.reduce((acc, val) => acc + val, 0);
+                  
+                   return (
+                     <TableRow key={category} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelectedCategory(category)}>
+                       <TableCell className="font-medium text-green-600">{category}</TableCell>
+                       {categoryData.map((amount, index) => (
+                         <TableCell key={index} className="text-center cursor-pointer hover:bg-gray-100" 
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             setSelectedCategory(category);
+                             setSelectedMonth(index + 1);
+                           }}>
+                           {amount > 0 ? `$${amount.toFixed(2)}` : '-'}
+                         </TableCell>
+                       ))}
+                       <TableCell className="text-center font-medium text-green-600">
+                         {total > 0 ? `$${total.toFixed(2)}` : '-'}
+                       </TableCell>
+                     </TableRow>
+                   );
+                })}
+                
+                {/* Income Subtotal */}
+                <TableRow className="bg-green-50">
+                  <TableCell className="font-bold text-green-700">Income Subtotal</TableCell>
+                  {months.map((month) => {
                     const monthlyIncome = transactions
                       .filter(t => 
                         t.type === 'income' &&
                         new Date(t.date).getFullYear() === selectedYear &&
-                        new Date(t.date).getMonth() + 1 === i
+                        new Date(t.date).getMonth() + 1 === month.value
                       )
                       .reduce((acc, t) => acc + t.amount, 0);
-                    
+                    return (
+                      <TableCell key={month.value} className="text-center font-bold text-green-700">
+                        {monthlyIncome > 0 ? `$${monthlyIncome.toFixed(2)}` : '-'}
+                      </TableCell>
+                    );
+                  })}
+                  <TableCell className="text-center font-bold text-green-700">
+                    ${transactions
+                      .filter(t => t.type === 'income' && new Date(t.date).getFullYear() === selectedYear)
+                      .reduce((acc, t) => acc + t.amount, 0)
+                      .toFixed(2)}
+                  </TableCell>
+                </TableRow>
+                
+                {/* Expense Categories */}
+                {expenseCategories.map((category) => {
+                  const categoryData = months.map((month) => {
+                    const sum = transactions
+                      .filter(t => 
+                        t.type === 'expense' && 
+                        t.category === category &&
+                        new Date(t.date).getFullYear() === selectedYear &&
+                        new Date(t.date).getMonth() + 1 === month.value
+                      )
+                      .reduce((acc, t) => acc + t.amount, 0);
+                    return sum;
+                  });
+                  const total = categoryData.reduce((acc, val) => acc + val, 0);
+                  
+                   return (
+                     <TableRow key={category} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelectedCategory(category)}>
+                       <TableCell className="font-medium text-red-600">{category}</TableCell>
+                       {categoryData.map((amount, index) => (
+                         <TableCell key={index} className="text-center cursor-pointer hover:bg-gray-100"
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             setSelectedCategory(category);
+                             setSelectedMonth(index + 1);
+                           }}>
+                           {amount > 0 ? `$${amount.toFixed(2)}` : '-'}
+                         </TableCell>
+                       ))}
+                       <TableCell className="text-center font-medium text-red-600">
+                         {total > 0 ? `$${total.toFixed(2)}` : '-'}
+                       </TableCell>
+                     </TableRow>
+                   );
+                })}
+                
+                {/* Expense Subtotal */}
+                <TableRow className="bg-red-50">
+                  <TableCell className="font-bold text-red-700">Expense Subtotal</TableCell>
+                  {months.map((month) => {
                     const monthlyExpenses = transactions
                       .filter(t => 
                         t.type === 'expense' &&
                         new Date(t.date).getFullYear() === selectedYear &&
-                        new Date(t.date).getMonth() + 1 === i
+                        new Date(t.date).getMonth() + 1 === month.value
                       )
                       .reduce((acc, t) => acc + t.amount, 0);
-                    
-                    runningBalance += monthlyIncome - monthlyExpenses;
-                  }
-                  
-                  return (
-                    <TableCell key={month.value} className="text-center font-bold text-blue-700">
-                      ${runningBalance.toFixed(2)}
-                    </TableCell>
-                  );
-                })}
-                <TableCell className="text-center font-bold text-blue-700">
-                  ${transactions
-                    .filter(t => new Date(t.date).getFullYear() === selectedYear)
-                    .reduce((acc, t) => t.type === 'income' ? acc + t.amount : acc - t.amount, 0)
-                    .toFixed(2)}
-                </TableCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {/* Income Categories */}
-              {incomeCategories.map((category) => {
-                const categoryData = months.map((month) => {
-                  const sum = transactions
-                    .filter(t => 
-                      t.type === 'income' && 
-                      t.category === category &&
-                      new Date(t.date).getFullYear() === selectedYear &&
-                      new Date(t.date).getMonth() + 1 === month.value
-                    )
-                    .reduce((acc, t) => acc + t.amount, 0);
-                  return sum;
-                });
-                const total = categoryData.reduce((acc, val) => acc + val, 0);
-                
-                 return (
-                   <TableRow key={category} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelectedCategory(category)}>
-                     <TableCell className="font-medium text-green-600">{category}</TableCell>
-                     {categoryData.map((amount, index) => (
-                       <TableCell key={index} className="text-center cursor-pointer hover:bg-gray-100" 
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           setSelectedCategory(category);
-                           setSelectedMonth(index + 1);
-                         }}>
-                         {amount > 0 ? `$${amount.toFixed(2)}` : '-'}
-                       </TableCell>
-                     ))}
-                     <TableCell className="text-center font-medium text-green-600">
-                       {total > 0 ? `$${total.toFixed(2)}` : '-'}
-                     </TableCell>
-                   </TableRow>
-                 );
-              })}
-              
-              {/* Income Subtotal */}
-              <TableRow className="bg-green-50">
-                <TableCell className="font-bold text-green-700">Income Subtotal</TableCell>
-                {months.map((month) => {
-                  const monthlyIncome = transactions
-                    .filter(t => 
-                      t.type === 'income' &&
-                      new Date(t.date).getFullYear() === selectedYear &&
-                      new Date(t.date).getMonth() + 1 === month.value
-                    )
-                    .reduce((acc, t) => acc + t.amount, 0);
-                  return (
-                    <TableCell key={month.value} className="text-center font-bold text-green-700">
-                      {monthlyIncome > 0 ? `$${monthlyIncome.toFixed(2)}` : '-'}
-                    </TableCell>
-                  );
-                })}
-                <TableCell className="text-center font-bold text-green-700">
-                  ${transactions
-                    .filter(t => t.type === 'income' && new Date(t.date).getFullYear() === selectedYear)
-                    .reduce((acc, t) => acc + t.amount, 0)
-                    .toFixed(2)}
-                </TableCell>
-              </TableRow>
-              
-              {/* Expense Categories */}
-              {expenseCategories.map((category) => {
-                const categoryData = months.map((month) => {
-                  const sum = transactions
-                    .filter(t => 
-                      t.type === 'expense' && 
-                      t.category === category &&
-                      new Date(t.date).getFullYear() === selectedYear &&
-                      new Date(t.date).getMonth() + 1 === month.value
-                    )
-                    .reduce((acc, t) => acc + t.amount, 0);
-                  return sum;
-                });
-                const total = categoryData.reduce((acc, val) => acc + val, 0);
-                
-                 return (
-                   <TableRow key={category} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelectedCategory(category)}>
-                     <TableCell className="font-medium text-red-600">{category}</TableCell>
-                     {categoryData.map((amount, index) => (
-                       <TableCell key={index} className="text-center cursor-pointer hover:bg-gray-100"
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           setSelectedCategory(category);
-                           setSelectedMonth(index + 1);
-                         }}>
-                         {amount > 0 ? `$${amount.toFixed(2)}` : '-'}
-                       </TableCell>
-                     ))}
-                     <TableCell className="text-center font-medium text-red-600">
-                       {total > 0 ? `$${total.toFixed(2)}` : '-'}
-                     </TableCell>
-                   </TableRow>
-                 );
-              })}
-              
-              {/* Expense Subtotal */}
-              <TableRow className="bg-red-50">
-                <TableCell className="font-bold text-red-700">Expense Subtotal</TableCell>
-                {months.map((month) => {
-                  const monthlyExpenses = transactions
-                    .filter(t => 
-                      t.type === 'expense' &&
-                      new Date(t.date).getFullYear() === selectedYear &&
-                      new Date(t.date).getMonth() + 1 === month.value
-                    )
-                    .reduce((acc, t) => acc + t.amount, 0);
-                  return (
-                    <TableCell key={month.value} className="text-center font-bold text-red-700">
-                      {monthlyExpenses > 0 ? `$${monthlyExpenses.toFixed(2)}` : '-'}
-                    </TableCell>
-                  );
-                })}
-                <TableCell className="text-center font-bold text-red-700">
-                  ${transactions
-                    .filter(t => t.type === 'expense' && new Date(t.date).getFullYear() === selectedYear)
-                    .reduce((acc, t) => acc + t.amount, 0)
-                    .toFixed(2)}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </Box>
-      </Paper>
+                    return (
+                      <TableCell key={month.value} className="text-center font-bold text-red-700">
+                        {monthlyExpenses > 0 ? `$${monthlyExpenses.toFixed(2)}` : '-'}
+                      </TableCell>
+                    );
+                  })}
+                  <TableCell className="text-center font-bold text-red-700">
+                    ${transactions
+                      .filter(t => t.type === 'expense' && new Date(t.date).getFullYear() === selectedYear)
+                      .reduce((acc, t) => acc + t.amount, 0)
+                      .toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </Box>
+        </Paper>
 
-      {/* Main Content - Side by Side */}
-      <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} sx={{ mb: 4 }}>
-        {/* Add Transaction Form */}
-        <Paper sx={{ p: 3, flex: 1 }}>
-          <Typography variant="h6" gutterBottom>
-            Add Transaction
-          </Typography>
-          <Stack spacing={2}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <FormControl fullWidth>
+        {/* Transaction History + Add Transaction - 20% */}
+        <Paper sx={{ flex: 1, p: 3, display: 'flex', flexDirection: 'column' }}>
+          {/* Add Transaction Form */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Add Transaction
+            </Typography>
+            <Stack spacing={2}>
+              <FormControl fullWidth size="small">
                 <InputLabel>Type</InputLabel>
                 <Select
                   value={type}
@@ -403,15 +404,14 @@ const BudgetApp: React.FC = () => {
               </FormControl>
               <TextField
                 fullWidth
+                size="small"
                 label="Amount"
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 inputProps={{ min: 0, step: 0.01 }}
               />
-            </Stack>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <FormControl fullWidth>
+              <FormControl fullWidth size="small">
                 <InputLabel>Category</InputLabel>
                 <Select
                   value={category}
@@ -427,64 +427,95 @@ const BudgetApp: React.FC = () => {
               </FormControl>
               <TextField
                 fullWidth
+                size="small"
                 label="Description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
+              <Stack direction="row" spacing={1}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Year</InputLabel>
+                  <Select
+                    value={transactionYear}
+                    label="Year"
+                    onChange={(e) => setTransactionYear(Number(e.target.value))}
+                  >
+                    {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map((year) => (
+                      <MenuItem key={year} value={year}>
+                        {year}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Month</InputLabel>
+                  <Select
+                    value={transactionMonth}
+                    label="Month"
+                    onChange={(e) => setTransactionMonth(Number(e.target.value))}
+                  >
+                    {months.map((month) => (
+                      <MenuItem key={month.value} value={month.value}>
+                        {month.label.slice(0, 3)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Stack>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={addTransaction}
+                fullWidth
+                size="small"
+              >
+                Add
+              </Button>
             </Stack>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <FormControl fullWidth>
-                <InputLabel>Year</InputLabel>
-                <Select
-                  value={transactionYear}
-                  label="Year"
-                  onChange={(e) => setTransactionYear(Number(e.target.value))}
-                >
-                  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map((year) => (
-                    <MenuItem key={year} value={year}>
-                      {year}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl fullWidth>
-                <InputLabel>Month</InputLabel>
-                <Select
-                  value={transactionMonth}
-                  label="Month"
-                  onChange={(e) => setTransactionMonth(Number(e.target.value))}
-                >
-                  {months.map((month) => (
-                    <MenuItem key={month.value} value={month.value}>
-                      {month.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Stack>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={addTransaction}
-              disabled={!amount || !description || !category}
-              fullWidth
-            >
-              Add Transaction
-            </Button>
-          </Stack>
-        </Paper>
+          </Box>
 
-        {/* Transaction History */}
-        <Paper sx={{ p: 3, flex: 1.5 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Box>
-            <Typography variant="h6">
-              Transaction History
-            </Typography>
+          {/* Transaction History */}
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6">
+                History
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                <FormControl size="small" sx={{ minWidth: 80 }}>
+                  <InputLabel>Year</InputLabel>
+                  <Select
+                    value={selectedYear}
+                    label="Year"
+                    onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  >
+                    {availableYears.map((year) => (
+                      <MenuItem key={year} value={year}>
+                        {year}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ minWidth: 80 }}>
+                  <InputLabel>Month</InputLabel>
+                  <Select
+                    value={selectedMonth}
+                    label="Month"
+                    onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                  >
+                    {months.map((month) => (
+                      <MenuItem key={month.value} value={month.value}>
+                        {month.label.slice(0, 3)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Stack>
+            </Box>
+            
             {selectedCategory && (
-              <Box display="flex" alignItems="center" gap={1} mt={1}>
-                <Chip
-                  label={`Category: ${selectedCategory}`}
+              <Box mb={2}>
+                <Chip 
+                  label={selectedCategory}
                   onDelete={() => setSelectedCategory('')}
                   color="primary"
                   variant="outlined"
@@ -492,102 +523,63 @@ const BudgetApp: React.FC = () => {
                 />
               </Box>
             )}
-          </Box>
-          <Stack direction="row" spacing={2}>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Year</InputLabel>
-              <Select
-                value={selectedYear}
-                label="Year"
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-              >
-                {availableYears.map((year) => (
-                  <MenuItem key={year} value={year}>
-                    {year}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Month</InputLabel>
-              <Select
-                value={selectedMonth}
-                label="Month"
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-              >
-                {months.map((month) => (
-                  <MenuItem key={month.value} value={month.value}>
-                    {month.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Stack>
-        </Box>
-        {filteredTransactions.length === 0 ? (
-          <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
-            {transactions.length === 0 
-              ? "No transactions yet. Add your first transaction above!" 
-              : `No transactions found for ${months.find(m => m.value === selectedMonth)?.label} ${selectedYear}`
-            }
-          </Typography>
-        ) : (
-          <List>
-            {filteredTransactions.map((transaction) => (
-              <ListItem
-                key={transaction.id}
-                sx={{
-                  border: 1,
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  mb: 1,
-                }}
-                secondaryAction={
-                  <IconButton 
-                    edge="end" 
-                    onClick={() => deleteTransaction(transaction.id)}
-                    color="error"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                }
-              >
-                <ListItemText
-                  primary={
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Typography variant="body1" fontWeight="medium">
-                        {transaction.description}
-                      </Typography>
-                      <Chip
-                        label={transaction.category}
+
+            <List sx={{ flex: 1, overflow: 'auto', maxHeight: 'calc(100vh - 600px)' }}>
+              {filteredTransactions.length === 0 ? (
+                <Typography color="text.secondary" align="center" sx={{ py: 2 }}>
+                  No transactions
+                </Typography>
+              ) : (
+                filteredTransactions.map((transaction) => (
+                  <ListItem
+                    key={transaction.id}
+                    sx={{
+                      border: 1,
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                      mb: 1,
+                      bgcolor: 'background.paper',
+                      p: 1,
+                    }}
+                    secondaryAction={
+                      <IconButton
+                        edge="end"
+                        onClick={() => deleteTransaction(transaction.id)}
+                        color="error"
                         size="small"
-                        color={transaction.type === 'income' ? 'success' : 'error'}
-                        variant="outlined"
-                      />
-                    </Box>
-                  }
-                  secondary={
-                    <Box display="flex" justifyContent="space-between" alignItems="center">
-                      <Typography variant="body2" color="text.secondary">
-                        {transaction.date.toLocaleDateString()}
-                      </Typography>
-                      <Typography
-                        variant="h6"
-                        color={transaction.type === 'income' ? 'success.main' : 'error.main'}
-                        fontWeight="bold"
                       >
-                        {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
-                      </Typography>
-                    </Box>
-                  }
-                />
-              </ListItem>
-            ))}
-          </List>
-        )}
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    }
+                  >
+                    <ListItemText
+                      primary={
+                        <Box>
+                          <Typography variant="body2" noWrap>
+                            {transaction.description}
+                          </Typography>
+                          <Chip
+                            label={`$${transaction.amount.toFixed(2)}`}
+                            color={transaction.type === 'income' ? 'success' : 'error'}
+                            size="small"
+                            sx={{ mt: 0.5 }}
+                          />
+                        </Box>
+                      }
+                      secondary={
+                        <Typography variant="caption" color="text.secondary">
+                          {transaction.category}
+                        </Typography>
+                      }
+                    />
+                  </ListItem>
+                ))
+              )}
+            </List>
+          </Box>
         </Paper>
-      </Stack>
-    </Container>
+      </Box>
+    </Box>
   );
 };
 
