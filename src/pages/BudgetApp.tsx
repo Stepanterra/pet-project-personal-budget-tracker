@@ -54,9 +54,11 @@ const BudgetApp: React.FC = () => {
   const [transactionYear, setTransactionYear] = useState<number>(new Date().getFullYear());
   const [transactionMonth, setTransactionMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [newCategory, setNewCategory] = useState<string>('');
+  const [showAddCategory, setShowAddCategory] = useState<boolean>(false);
 
-  const incomeCategories = ['Salary', 'Freelance', 'Investment', 'Other Income'];
-  const expenseCategories = ['Food', 'Transport', 'Entertainment', 'Bills', 'Shopping', 'Other'];
+  const [incomeCategories, setIncomeCategories] = useState(['Salary', 'Freelance', 'Investment', 'Other Income']);
+  const [expenseCategories, setExpenseCategories] = useState(['Food', 'Transport', 'Entertainment', 'Bills', 'Shopping', 'Other']);
 
   const addTransaction = () => {
     if (!amount || !category) return;
@@ -77,6 +79,18 @@ const BudgetApp: React.FC = () => {
     setAmount('');
     setDescription('');
     setCategory('');
+  };
+
+  const addCategory = () => {
+    if (!newCategory.trim()) return;
+    
+    if (type === 'income') {
+      setIncomeCategories([...incomeCategories, newCategory.trim()]);
+    } else {
+      setExpenseCategories([...expenseCategories, newCategory.trim()]);
+    }
+    setNewCategory('');
+    setShowAddCategory(false);
   };
 
   const deleteTransaction = (id: string) => {
@@ -222,30 +236,28 @@ const BudgetApp: React.FC = () => {
                 <TableRow className="bg-blue-50">
                   <TableCell className="font-bold text-blue-700">Running Balance</TableCell>
                   {months.map((month, index) => {
-                    // Calculate running balance up to this month
+                    // Calculate cumulative running balance from beginning of all time up to this month
                     let runningBalance = 0;
-                    for (let i = 1; i <= month.value; i++) {
-                      const monthlyIncome = transactions
-                        .filter(t => 
-                          t.type === 'income' &&
-                          new Date(t.date).getFullYear() === selectedYear &&
-                          new Date(t.date).getMonth() + 1 === i
-                        )
-                        .reduce((acc, t) => acc + t.amount, 0);
+                    
+                    // Get all transactions sorted by date
+                    const sortedTransactions = [...transactions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                    
+                    for (const transaction of sortedTransactions) {
+                      const transactionDate = new Date(transaction.date);
+                      const transactionYear = transactionDate.getFullYear();
+                      const transactionMonth = transactionDate.getMonth() + 1;
                       
-                      const monthlyExpenses = transactions
-                        .filter(t => 
-                          t.type === 'expense' &&
-                          new Date(t.date).getFullYear() === selectedYear &&
-                          new Date(t.date).getMonth() + 1 === i
-                        )
-                        .reduce((acc, t) => acc + t.amount, 0);
-                      
-                      runningBalance += monthlyIncome - monthlyExpenses;
+                      // Include all transactions up to the target year/month
+                      if (transactionYear < selectedYear || 
+                          (transactionYear === selectedYear && transactionMonth <= month.value)) {
+                        runningBalance += transaction.type === 'income' ? transaction.amount : -transaction.amount;
+                      }
                     }
                     
+                    const isNegative = runningBalance < 0;
+                    
                     return (
-                      <TableCell key={month.value} className="text-center font-bold text-blue-700">
+                      <TableCell key={month.value} className={`text-center font-bold ${isNegative ? 'text-red-700 bg-red-100' : 'text-blue-700'}`}>
                         ${Math.round(runningBalance)}
                       </TableCell>
                     );
@@ -415,20 +427,61 @@ const BudgetApp: React.FC = () => {
                 inputProps={{ min: 0, step: 0.01 }}
                 required
               />
-              <FormControl fullWidth size="small" required>
-                <InputLabel>Category *</InputLabel>
-                <Select
-                  value={category}
-                  label="Category *"
-                  onChange={(e) => setCategory(e.target.value)}
+              <Stack direction="row" spacing={1} alignItems="flex-end">
+                <FormControl fullWidth size="small" required sx={{ flex: 1 }}>
+                  <InputLabel>Category *</InputLabel>
+                  <Select
+                    value={category}
+                    label="Category *"
+                    onChange={(e) => setCategory(e.target.value)}
+                  >
+                    {(type === 'income' ? incomeCategories : expenseCategories).map((cat) => (
+                      <MenuItem key={cat} value={cat}>
+                        {cat}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setShowAddCategory(!showAddCategory)}
+                  sx={{ minWidth: 'auto', px: 1 }}
                 >
-                  {(type === 'income' ? incomeCategories : expenseCategories).map((cat) => (
-                    <MenuItem key={cat} value={cat}>
-                      {cat}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                  +
+                </Button>
+              </Stack>
+              
+              {showAddCategory && (
+                <Stack direction="row" spacing={1}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="New Category"
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    placeholder={`Add ${type} category`}
+                  />
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={addCategory}
+                    disabled={!newCategory.trim()}
+                  >
+                    Add
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => {
+                      setShowAddCategory(false);
+                      setNewCategory('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Stack>
+              )}
               <TextField
                 fullWidth
                 size="small"
