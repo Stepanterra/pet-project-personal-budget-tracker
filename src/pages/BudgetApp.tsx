@@ -38,6 +38,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Add as AddIcon,
   TrendingUp as IncomeIcon,
   TrendingDown as ExpenseIcon,
@@ -77,6 +87,8 @@ const BudgetApp: React.FC = () => {
   const [showAddCategory, setShowAddCategory] = useState<boolean>(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [showZeroCategories, setShowZeroCategories] = useState<boolean>(true);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<boolean>(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
 
   const [incomeCategories, setIncomeCategories] = useState(['Salary', 'Freelance', 'Investment', 'Other Income']);
   const [expenseCategories, setExpenseCategories] = useState(['Food', 'Transport', 'Entertainment', 'Bills', 'Shopping', 'Other']);
@@ -155,6 +167,24 @@ const BudgetApp: React.FC = () => {
 
   const deleteTransaction = (id: string) => {
     setTransactions(transactions.filter(t => t.id !== id));
+  };
+
+  const promptDeleteTransaction = (id: string) => {
+    setTransactionToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteTransaction = () => {
+    if (transactionToDelete) {
+      setTransactions(transactions.filter(t => t.id !== transactionToDelete));
+      setTransactionToDelete(null);
+    }
+    setDeleteConfirmOpen(false);
+  };
+
+  const cancelDeleteTransaction = () => {
+    setTransactionToDelete(null);
+    setDeleteConfirmOpen(false);
   };
 
   // Filter transactions by selected year and month
@@ -802,7 +832,7 @@ const BudgetApp: React.FC = () => {
                           <EditIcon fontSize="small" />
                         </IconButton>
                         <IconButton
-                          onClick={() => deleteTransaction(transaction.id)}
+                          onClick={() => promptDeleteTransaction(transaction.id)}
                           color="error"
                           size="small"
                         >
@@ -839,6 +869,26 @@ const BudgetApp: React.FC = () => {
         </Paper>
       </Box>
       </Box>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this transaction? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDeleteTransaction}>
+              No
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteTransaction}>
+              Yes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Box>
   );
 };
