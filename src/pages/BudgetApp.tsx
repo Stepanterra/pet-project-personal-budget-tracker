@@ -425,9 +425,9 @@ const BudgetApp: React.FC = () => {
           </Box>
           <Box sx={{ overflowX: 'auto', overflowY: 'auto', flex: 1 }}>
             <Table>
-              <TableHeader className="sticky top-0 bg-background z-10">
+              <TableHeader>
                 <TableRow>
-                  <TableHead className="font-medium sticky left-0 bg-background">Category</TableHead>
+                  <TableHead className="font-medium">Category</TableHead>
                   {months.map((month) => (
                     <TableHead key={month.value} className="text-center font-medium">
                       {month.label.slice(0, 3)}
@@ -436,8 +436,8 @@ const BudgetApp: React.FC = () => {
                   <TableHead className="text-center font-medium">Total</TableHead>
                 </TableRow>
                 {/* Running Balance Row */}
-                <TableRow className="bg-blue-50 sticky top-[41px] z-10">
-                  <TableCell className="font-bold text-blue-700 sticky left-0 bg-blue-50">Running Balance</TableCell>
+                <TableRow className="bg-blue-50">
+                  <TableCell className="font-bold text-blue-700">Running Balance</TableCell>
                   {months.map((month, index) => {
                     // Calculate cumulative running balance from beginning of all time up to this month
                     let runningBalance = 0;
