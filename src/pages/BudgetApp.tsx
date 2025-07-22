@@ -59,7 +59,7 @@ const BudgetApp: React.FC = () => {
   const expenseCategories = ['Food', 'Transport', 'Entertainment', 'Bills', 'Shopping', 'Other'];
 
   const addTransaction = () => {
-    if (!amount || !description || !category) return;
+    if (!amount || !category) return;
 
     // Create date with selected year and month (first day of the month)
     const transactionDate = new Date(transactionYear, transactionMonth - 1, 1);
@@ -129,6 +129,9 @@ const BudgetApp: React.FC = () => {
     { value: 11, label: 'November' },
     { value: 12, label: 'December' },
   ];
+
+  // Check if all required fields are filled
+  const isFormValid = amount && category && type;
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', px: 2, py: 4 }}>
@@ -388,11 +391,11 @@ const BudgetApp: React.FC = () => {
               Add Transaction
             </Typography>
             <Stack spacing={2}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Type</InputLabel>
+              <FormControl fullWidth size="small" required>
+                <InputLabel>Type *</InputLabel>
                 <Select
                   value={type}
-                  label="Type"
+                  label="Type *"
                   onChange={(e) => {
                     setType(e.target.value as 'income' | 'expense');
                     setCategory('');
@@ -405,17 +408,18 @@ const BudgetApp: React.FC = () => {
               <TextField
                 fullWidth
                 size="small"
-                label="Amount"
+                label="Amount *"
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 inputProps={{ min: 0, step: 0.01 }}
+                required
               />
-              <FormControl fullWidth size="small">
-                <InputLabel>Category</InputLabel>
+              <FormControl fullWidth size="small" required>
+                <InputLabel>Category *</InputLabel>
                 <Select
                   value={category}
-                  label="Category"
+                  label="Category *"
                   onChange={(e) => setCategory(e.target.value)}
                 >
                   {(type === 'income' ? incomeCategories : expenseCategories).map((cat) => (
@@ -468,6 +472,13 @@ const BudgetApp: React.FC = () => {
                 onClick={addTransaction}
                 fullWidth
                 size="small"
+                disabled={!isFormValid}
+                sx={{
+                  bgcolor: isFormValid ? 'primary.main' : 'grey.400',
+                  '&:hover': {
+                    bgcolor: isFormValid ? 'primary.dark' : 'grey.400',
+                  }
+                }}
               >
                 Add
               </Button>
