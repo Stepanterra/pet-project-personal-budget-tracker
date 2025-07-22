@@ -170,102 +170,104 @@ const BudgetApp: React.FC = () => {
         </Card>
       </Stack>
 
-      {/* Add Transaction Form */}
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          Add Transaction
-        </Typography>
-        <Stack spacing={2}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <FormControl fullWidth>
-              <InputLabel>Type</InputLabel>
-              <Select
-                value={type}
-                label="Type"
-                onChange={(e) => {
-                  setType(e.target.value as 'income' | 'expense');
-                  setCategory('');
-                }}
-              >
-                <MenuItem value="income">Income</MenuItem>
-                <MenuItem value="expense">Expense</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              fullWidth
-              label="Amount"
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              inputProps={{ min: 0, step: 0.01 }}
-            />
-          </Stack>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <FormControl fullWidth>
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={category}
-                label="Category"
-                onChange={(e) => setCategory(e.target.value)}
-              >
-                {(type === 'income' ? incomeCategories : expenseCategories).map((cat) => (
-                  <MenuItem key={cat} value={cat}>
-                    {cat}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              fullWidth
-              label="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </Stack>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <FormControl fullWidth>
-              <InputLabel>Year</InputLabel>
-              <Select
-                value={transactionYear}
-                label="Year"
-                onChange={(e) => setTransactionYear(Number(e.target.value))}
-              >
-                {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map((year) => (
-                  <MenuItem key={year} value={year}>
-                    {year}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel>Month</InputLabel>
-              <Select
-                value={transactionMonth}
-                label="Month"
-                onChange={(e) => setTransactionMonth(Number(e.target.value))}
-              >
-                {months.map((month) => (
-                  <MenuItem key={month.value} value={month.value}>
-                    {month.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Stack>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={addTransaction}
-            disabled={!amount || !description || !category}
-            fullWidth
-          >
+      {/* Main Content - Side by Side */}
+      <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} sx={{ mb: 4 }}>
+        {/* Add Transaction Form */}
+        <Paper sx={{ p: 3, flex: 1 }}>
+          <Typography variant="h6" gutterBottom>
             Add Transaction
-          </Button>
-        </Stack>
-      </Paper>
+          </Typography>
+          <Stack spacing={2}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <FormControl fullWidth>
+                <InputLabel>Type</InputLabel>
+                <Select
+                  value={type}
+                  label="Type"
+                  onChange={(e) => {
+                    setType(e.target.value as 'income' | 'expense');
+                    setCategory('');
+                  }}
+                >
+                  <MenuItem value="income">Income</MenuItem>
+                  <MenuItem value="expense">Expense</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                fullWidth
+                label="Amount"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                inputProps={{ min: 0, step: 0.01 }}
+              />
+            </Stack>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <FormControl fullWidth>
+                <InputLabel>Category</InputLabel>
+                <Select
+                  value={category}
+                  label="Category"
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  {(type === 'income' ? incomeCategories : expenseCategories).map((cat) => (
+                    <MenuItem key={cat} value={cat}>
+                      {cat}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <TextField
+                fullWidth
+                label="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </Stack>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <FormControl fullWidth>
+                <InputLabel>Year</InputLabel>
+                <Select
+                  value={transactionYear}
+                  label="Year"
+                  onChange={(e) => setTransactionYear(Number(e.target.value))}
+                >
+                  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map((year) => (
+                    <MenuItem key={year} value={year}>
+                      {year}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <InputLabel>Month</InputLabel>
+                <Select
+                  value={transactionMonth}
+                  label="Month"
+                  onChange={(e) => setTransactionMonth(Number(e.target.value))}
+                >
+                  {months.map((month) => (
+                    <MenuItem key={month.value} value={month.value}>
+                      {month.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Stack>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={addTransaction}
+              disabled={!amount || !description || !category}
+              fullWidth
+            >
+              Add Transaction
+            </Button>
+          </Stack>
+        </Paper>
 
-      {/* Transaction History */}
-      <Paper sx={{ p: 3 }}>
+        {/* Transaction History */}
+        <Paper sx={{ p: 3, flex: 1.5 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h6">
             Transaction History
@@ -362,7 +364,8 @@ const BudgetApp: React.FC = () => {
             ))}
           </List>
         )}
-      </Paper>
+        </Paper>
+      </Stack>
     </Container>
   );
 };
