@@ -75,6 +75,8 @@ const BudgetApp: React.FC = () => {
                 editingTransaction={budgetData.editingTransaction}
                 isFormValid={budgetData.isFormValid}
                 repeatMonthly={budgetData.repeatMonthly}
+                updateRelatedTransactions={budgetData.updateRelatedTransactions}
+                allTransactions={budgetData.transactions}
                 incomeCategories={budgetData.incomeCategories}
                 expenseCategories={budgetData.expenseCategories}
                 onAmountChange={budgetData.setAmount}
@@ -89,6 +91,7 @@ const BudgetApp: React.FC = () => {
                 onAddCategory={budgetData.addCategory}
                 onCancelEdit={budgetData.cancelEdit}
                 onRepeatMonthlyChange={budgetData.setRepeatMonthly}
+                onUpdateRelatedTransactionsChange={budgetData.setUpdateRelatedTransactions}
               />
 
               <Divider sx={{ my: 2 }} />

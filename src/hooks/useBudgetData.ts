@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Transaction, BudgetState } from '@/types/budget';
-import { DEFAULT_INCOME_CATEGORIES, DEFAULT_EXPENSE_CATEGORIES, generateTransactionId, createTransactionDate } from '@/utils/budgetHelpers';
+import { DEFAULT_INCOME_CATEGORIES, DEFAULT_EXPENSE_CATEGORIES, generateTransactionId, createTransactionDate, findRelatedRepeatableTransactions } from '@/utils/budgetHelpers';
+import { useToast } from '@/hooks/use-toast';
 
 export const useBudgetData = () => {
+  const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [amount, setAmount] = useState<string>('');
   const [description, setDescription] = useState<string>('');
@@ -22,6 +24,7 @@ export const useBudgetData = () => {
   const [incomeCategories, setIncomeCategories] = useState(DEFAULT_INCOME_CATEGORIES);
   const [expenseCategories, setExpenseCategories] = useState(DEFAULT_EXPENSE_CATEGORIES);
   const [repeatMonthly, setRepeatMonthly] = useState<boolean>(false);
+  const [updateRelatedTransactions, setUpdateRelatedTransactions] = useState<boolean>(false);
 
   const addTransaction = () => {
     if (!amount || !category) return;
@@ -38,9 +41,33 @@ export const useBudgetData = () => {
         date: transactionDate,
       };
 
-      setTransactions(transactions.map(t => 
-        t.id === editingTransaction.id ? updatedTransaction : t
-      ));
+      if (updateRelatedTransactions) {
+        // Update the current transaction and all related ones
+        const relatedTransactions = findRelatedRepeatableTransactions(transactions, editingTransaction);
+        const updatedTransactions = transactions.map(t => {
+          if (t.id === editingTransaction.id) {
+            return updatedTransaction;
+          } else if (relatedTransactions.some(rt => rt.id === t.id)) {
+            return {
+              ...t,
+              type,
+              amount: parseFloat(amount),
+              description,
+              category,
+            };
+          }
+          return t;
+        });
+        setTransactions(updatedTransactions);
+        toast({
+          title: "Success",
+          description: `Updated ${relatedTransactions.length + 1} related transactions`,
+        });
+      } else {
+        setTransactions(transactions.map(t => 
+          t.id === editingTransaction.id ? updatedTransaction : t
+        ));
+      }
       setEditingTransaction(null);
     } else {
       if (repeatMonthly) {
@@ -97,6 +124,7 @@ export const useBudgetData = () => {
     setTransactionYear(new Date().getFullYear());
     setTransactionMonth(new Date().getMonth() + 1);
     setRepeatMonthly(false);
+    setUpdateRelatedTransactions(false);
   };
 
   const addCategory = () => {
@@ -153,6 +181,7 @@ export const useBudgetData = () => {
     expenseCategories,
     isFormValid,
     repeatMonthly,
+    updateRelatedTransactions,
 
     // Setters
     setAmount,
@@ -168,6 +197,7 @@ export const useBudgetData = () => {
     setShowAddCategory,
     setShowZeroCategories,
     setRepeatMonthly,
+    setUpdateRelatedTransactions,
 
     // Actions
     addTransaction,

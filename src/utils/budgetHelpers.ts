@@ -1,4 +1,4 @@
-import { MonthData } from '@/types/budget';
+import { MonthData, Transaction } from '@/types/budget';
 
 export const MONTHS: MonthData[] = [
   { value: 1, label: 'January' },
@@ -40,4 +40,23 @@ export const generateTransactionId = (): string => {
 
 export const createTransactionDate = (year: number, month: number): Date => {
   return new Date(year, month - 1, 1);
+};
+
+export const findRelatedRepeatableTransactions = (transactions: Transaction[], transaction: Transaction): Transaction[] => {
+  const transactionYear = new Date(transaction.date).getFullYear();
+  
+  return transactions.filter(t => {
+    const tYear = new Date(t.date).getFullYear();
+    return t.id !== transaction.id &&
+           t.type === transaction.type &&
+           t.amount === transaction.amount &&
+           t.description === transaction.description &&
+           t.category === transaction.category &&
+           tYear === transactionYear;
+  });
+};
+
+export const isPartOfRepeatableGroup = (transactions: Transaction[], transaction: Transaction): boolean => {
+  const related = findRelatedRepeatableTransactions(transactions, transaction);
+  return related.length >= 2; // At least 3 total (including current) to be considered repeatable
 };

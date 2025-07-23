@@ -3,7 +3,7 @@ import { Box, Typography, Chip, Stack, FormControl, InputLabel, Select, MenuItem
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Add as AddIcon } from '@mui/icons-material';
 import { Transaction } from '@/types/budget';
-import { MONTHS, generateYearRange } from '@/utils/budgetHelpers';
+import { MONTHS, generateYearRange, isPartOfRepeatableGroup } from '@/utils/budgetHelpers';
 
 interface TransactionFormProps {
   // Form state
@@ -18,6 +18,8 @@ interface TransactionFormProps {
   editingTransaction: Transaction | null;
   isFormValid: boolean;
   repeatMonthly: boolean;
+  updateRelatedTransactions: boolean;
+  allTransactions: Transaction[];
   
   // Categories
   incomeCategories: string[];
@@ -36,6 +38,7 @@ interface TransactionFormProps {
   onAddCategory: () => void;
   onCancelEdit: () => void;
   onRepeatMonthlyChange: (value: boolean) => void;
+  onUpdateRelatedTransactionsChange: (value: boolean) => void;
 }
 
 const TransactionForm: React.FC<TransactionFormProps> = ({
@@ -50,6 +53,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   editingTransaction,
   isFormValid,
   repeatMonthly,
+  updateRelatedTransactions,
+  allTransactions,
   incomeCategories,
   expenseCategories,
   onAmountChange,
@@ -64,9 +69,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   onAddCategory,
   onCancelEdit,
   onRepeatMonthlyChange,
+  onUpdateRelatedTransactionsChange,
 }) => {
   const yearOptions = generateYearRange();
   const categoryOptions = type === 'income' ? incomeCategories : expenseCategories;
+  const isRepeatableGroup = editingTransaction && isPartOfRepeatableGroup(allTransactions, editingTransaction);
 
   return (
     <Box sx={{ flexShrink: 0, mb: 2 }}>
@@ -217,6 +224,20 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               />
             }
             label="Repeat monthly for 1 year"
+            sx={{ alignSelf: 'flex-start' }}
+          />
+        )}
+
+        {isRepeatableGroup && (
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={updateRelatedTransactions}
+                onChange={(e) => onUpdateRelatedTransactionsChange(e.target.checked)}
+                size="small"
+              />
+            }
+            label="Update all related monthly transactions"
             sx={{ alignSelf: 'flex-start' }}
           />
         )}
