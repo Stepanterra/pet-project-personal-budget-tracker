@@ -110,6 +110,18 @@ export const useBudgetData = () => {
     setCategory(transaction.category);
     setTransactionYear(new Date(transaction.date).getFullYear());
     setTransactionMonth(new Date(transaction.date).getMonth() + 1);
+    setUpdateRelatedTransactions(false);
+  };
+
+  const editAllRelatedTransactions = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setType(transaction.type);
+    setAmount(transaction.amount.toString());
+    setDescription(transaction.description);
+    setCategory(transaction.category);
+    setTransactionYear(new Date(transaction.date).getFullYear());
+    setTransactionMonth(new Date(transaction.date).getMonth() + 1);
+    setUpdateRelatedTransactions(true);
   };
 
   const cancelEdit = () => {
@@ -203,6 +215,7 @@ export const useBudgetData = () => {
     // Actions
     addTransaction,
     editTransaction,
+    editAllRelatedTransactions,
     cancelEdit,
     addCategory,
     promptDeleteTransaction,

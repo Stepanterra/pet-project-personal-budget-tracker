@@ -107,6 +107,7 @@ const BudgetApp: React.FC = () => {
                 onMonthChange={budgetData.setSelectedMonth}
                 onClearCategory={() => budgetData.setSelectedCategory('')}
                 onEditTransaction={budgetData.editTransaction}
+                onEditAllRelated={budgetData.editAllRelatedTransactions}
                 onDeleteTransaction={budgetData.promptDeleteTransaction}
               />
             </Paper>

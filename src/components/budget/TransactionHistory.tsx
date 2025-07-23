@@ -1,8 +1,8 @@
 import React from 'react';
-import { Box, Typography, Stack, FormControl, InputLabel, Select, MenuItem, Chip, List, ListItem, ListItemText, IconButton } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Box, Typography, Stack, FormControl, InputLabel, Select, MenuItem, Chip, List, ListItem, ListItemText, IconButton, Badge } from '@mui/material';
+import { Edit as EditIcon, Delete as DeleteIcon, EditNote as EditNoteIcon } from '@mui/icons-material';
 import { Transaction } from '@/types/budget';
-import { MONTHS } from '@/utils/budgetHelpers';
+import { MONTHS, isPartOfRepeatableGroup } from '@/utils/budgetHelpers';
 
 interface TransactionHistoryProps {
   transactions: Transaction[];
@@ -15,6 +15,7 @@ interface TransactionHistoryProps {
   onMonthChange: (month: number) => void;
   onClearCategory: () => void;
   onEditTransaction: (transaction: Transaction) => void;
+  onEditAllRelated: (transaction: Transaction) => void;
   onDeleteTransaction: (id: string) => void;
 }
 
@@ -29,6 +30,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
   onMonthChange,
   onClearCategory,
   onEditTransaction,
+  onEditAllRelated,
   onDeleteTransaction,
 }) => {
   return (
@@ -88,60 +90,87 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
             No transactions
           </Typography>
         ) : (
-          transactions.map((transaction) => (
-            <ListItem
-              key={transaction.id}
-              sx={{
-                border: 1,
-                borderColor: 'divider',
-                borderRadius: 1,
-                mb: 1,
-                bgcolor: 'background.paper',
-                p: 1,
-              }}
-              secondaryAction={
-                <Stack direction="row" spacing={0.5}>
-                  <IconButton
-                    onClick={() => onEditTransaction(transaction)}
-                    color="primary"
-                    size="small"
-                    disabled={editingTransaction !== null}
-                  >
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => onDeleteTransaction(transaction.id)}
-                    color="error"
-                    size="small"
-                    disabled={editingTransaction !== null}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </Stack>
-              }
-            >
-              <ListItemText
-                primary={
-                  <Box>
-                    <Typography variant="body2" noWrap>
-                      {transaction.description}
-                    </Typography>
-                    <Chip
-                      label={`$${transaction.amount.toFixed(2)}`}
-                      color={transaction.type === 'income' ? 'success' : 'error'}
+          transactions.map((transaction) => {
+            const isRepeatable = isPartOfRepeatableGroup(transactions, transaction);
+            return (
+              <ListItem
+                key={transaction.id}
+                sx={{
+                  border: 1,
+                  borderColor: isRepeatable ? 'primary.main' : 'divider',
+                  borderRadius: 1,
+                  mb: 1,
+                  bgcolor: 'background.paper',
+                  p: 1,
+                }}
+                secondaryAction={
+                  <Stack direction="row" spacing={0.5}>
+                    <IconButton
+                      onClick={() => onEditTransaction(transaction)}
+                      color="primary"
                       size="small"
-                      sx={{ mt: 0.5 }}
-                    />
-                  </Box>
+                      disabled={editingTransaction !== null}
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    {isRepeatable && (
+                      <IconButton
+                        onClick={() => onEditAllRelated(transaction)}
+                        color="secondary"
+                        size="small"
+                        disabled={editingTransaction !== null}
+                        title="Edit all related monthly transactions"
+                      >
+                        <Badge badgeContent="12" color="primary" max={99}>
+                          <EditNoteIcon fontSize="small" />
+                        </Badge>
+                      </IconButton>
+                    )}
+                    <IconButton
+                      onClick={() => onDeleteTransaction(transaction.id)}
+                      color="error"
+                      size="small"
+                      disabled={editingTransaction !== null}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
                 }
-                secondary={
-                  <Typography variant="caption" color="text.secondary">
-                    {transaction.category}
-                  </Typography>
-                }
-              />
-            </ListItem>
-          ))
+              >
+                <ListItemText
+                  primary={
+                    <Box>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography variant="body2" noWrap>
+                          {transaction.description}
+                        </Typography>
+                        {isRepeatable && (
+                          <Chip
+                            label="Monthly"
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                            sx={{ fontSize: '0.7rem', height: 20 }}
+                          />
+                        )}
+                      </Stack>
+                      <Chip
+                        label={`$${transaction.amount.toFixed(2)}`}
+                        color={transaction.type === 'income' ? 'success' : 'error'}
+                        size="small"
+                        sx={{ mt: 0.5 }}
+                      />
+                    </Box>
+                  }
+                  secondary={
+                    <Typography variant="caption" color="text.secondary">
+                      {transaction.category}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+            );
+          })
         )}
       </List>
     </Box>
