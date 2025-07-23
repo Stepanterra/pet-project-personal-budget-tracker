@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export const useBudgetData = () => {
   const { toast } = useToast();
+  
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [amount, setAmount] = useState<string>('');
   const [description, setDescription] = useState<string>('');
