@@ -21,6 +21,7 @@ export const useBudgetData = () => {
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [incomeCategories, setIncomeCategories] = useState(DEFAULT_INCOME_CATEGORIES);
   const [expenseCategories, setExpenseCategories] = useState(DEFAULT_EXPENSE_CATEGORIES);
+  const [repeatMonthly, setRepeatMonthly] = useState<boolean>(false);
 
   const addTransaction = () => {
     if (!amount || !category) return;
@@ -42,16 +43,32 @@ export const useBudgetData = () => {
       ));
       setEditingTransaction(null);
     } else {
-      const newTransaction: Transaction = {
-        id: generateTransactionId(),
-        type,
-        amount: parseFloat(amount),
-        description,
-        category,
-        date: transactionDate,
-      };
-
-      setTransactions([newTransaction, ...transactions]);
+      if (repeatMonthly) {
+        // Create 12 transactions, one for each month of the year
+        const newTransactions: Transaction[] = [];
+        for (let month = 1; month <= 12; month++) {
+          const monthlyTransaction: Transaction = {
+            id: generateTransactionId(),
+            type,
+            amount: parseFloat(amount),
+            description,
+            category,
+            date: createTransactionDate(transactionYear, month),
+          };
+          newTransactions.push(monthlyTransaction);
+        }
+        setTransactions([...newTransactions, ...transactions]);
+      } else {
+        const newTransaction: Transaction = {
+          id: generateTransactionId(),
+          type,
+          amount: parseFloat(amount),
+          description,
+          category,
+          date: transactionDate,
+        };
+        setTransactions([newTransaction, ...transactions]);
+      }
     }
 
     resetForm();
@@ -79,6 +96,7 @@ export const useBudgetData = () => {
     setType('income');
     setTransactionYear(new Date().getFullYear());
     setTransactionMonth(new Date().getMonth() + 1);
+    setRepeatMonthly(false);
   };
 
   const addCategory = () => {
@@ -134,6 +152,7 @@ export const useBudgetData = () => {
     incomeCategories,
     expenseCategories,
     isFormValid,
+    repeatMonthly,
 
     // Setters
     setAmount,
@@ -148,6 +167,7 @@ export const useBudgetData = () => {
     setNewCategory,
     setShowAddCategory,
     setShowZeroCategories,
+    setRepeatMonthly,
 
     // Actions
     addTransaction,

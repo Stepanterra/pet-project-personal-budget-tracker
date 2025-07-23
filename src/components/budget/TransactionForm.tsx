@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Chip, Stack, FormControl, InputLabel, Select, MenuItem, TextField, Button } from '@mui/material';
+import { Box, Typography, Chip, Stack, FormControl, InputLabel, Select, MenuItem, TextField, Button, FormControlLabel, Checkbox } from '@mui/material';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Add as AddIcon } from '@mui/icons-material';
 import { Transaction } from '@/types/budget';
@@ -17,6 +17,7 @@ interface TransactionFormProps {
   showAddCategory: boolean;
   editingTransaction: Transaction | null;
   isFormValid: boolean;
+  repeatMonthly: boolean;
   
   // Categories
   incomeCategories: string[];
@@ -34,6 +35,7 @@ interface TransactionFormProps {
   onAddTransaction: () => void;
   onAddCategory: () => void;
   onCancelEdit: () => void;
+  onRepeatMonthlyChange: (value: boolean) => void;
 }
 
 const TransactionForm: React.FC<TransactionFormProps> = ({
@@ -47,6 +49,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   showAddCategory,
   editingTransaction,
   isFormValid,
+  repeatMonthly,
   incomeCategories,
   expenseCategories,
   onAmountChange,
@@ -60,6 +63,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   onAddTransaction,
   onAddCategory,
   onCancelEdit,
+  onRepeatMonthlyChange,
 }) => {
   const yearOptions = generateYearRange();
   const categoryOptions = type === 'income' ? incomeCategories : expenseCategories;
@@ -192,6 +196,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               value={transactionMonth}
               label="Month"
               onChange={(e) => onTransactionMonthChange(Number(e.target.value))}
+              disabled={repeatMonthly}
             >
               {MONTHS.map((month) => (
                 <MenuItem key={month.value} value={month.value}>
@@ -201,6 +206,20 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             </Select>
           </FormControl>
         </Stack>
+
+        {!editingTransaction && (
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={repeatMonthly}
+                onChange={(e) => onRepeatMonthlyChange(e.target.checked)}
+                size="small"
+              />
+            }
+            label="Repeat monthly for 1 year"
+            sx={{ alignSelf: 'flex-start' }}
+          />
+        )}
 
         <Button
           variant="contained"
