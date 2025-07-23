@@ -26,12 +26,7 @@ const BudgetApp: React.FC = () => {
 
   return (
     <TooltipProvider>
-      <Box sx={{ 
-        height: '100vh', 
-        background: 'var(--gradient-blue)', 
-        display: 'flex', 
-        flexDirection: 'column' 
-      }}>
+      <Box sx={{ height: '100vh', bgcolor: 'background.default', display: 'flex', flexDirection: 'column' }}>
         <BudgetHeader />
 
         <Box sx={{ px: 2, py: 2, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
